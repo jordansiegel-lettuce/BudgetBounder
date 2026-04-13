@@ -8,5 +8,6 @@
         public string PasswordHash { get; set; } = "";
         public int Level { get; set; }
         public double XP { get; set; }
+        public List<Transaction> Transactions { get; set; } = new List<Transaction>();
     }
 }
