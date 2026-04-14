@@ -28,5 +28,13 @@ namespace BudgetBounder.Api.Controllers
             _context.SaveChanges();
             return transaction;
         }
+        [HttpGet("user/{userId}")]
+        public ActionResult<List<Transaction>> GetUserTransactions( int userId)
+        {
+            var userTransactions = _context.Transactions
+           .Where(t => t.UserId == userId)
+           .ToList();
+            return userTransactions;
+        }
     }
 }
