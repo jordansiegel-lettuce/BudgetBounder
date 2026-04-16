@@ -1,0 +1,52 @@
+# ========================
+# .NET / C#
+# ========================
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.pdb
+*.log
+
+# Visual Studio
+.vs/
+*.vs/
+
+# Rider / JetBrains
+.idea/
+
+# ========================
+# Node / React
+# ========================
+node_modules/
+dist/
+build/
+
+# Vite
+.vite/
+
+# ========================
+# Environment files
+# ========================
+.env
+.env.*
+
+# ========================
+# OS junk
+# ========================
+.DS_Store
+Thumbs.db
+
+# ========================
+# Logs
+# ========================
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ========================
+# Misc
+# ========================
+coverage/
+*.tmp
