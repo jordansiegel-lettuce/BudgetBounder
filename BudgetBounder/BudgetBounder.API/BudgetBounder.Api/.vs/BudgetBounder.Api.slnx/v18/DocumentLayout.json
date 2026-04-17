@@ -64,7 +64,7 @@
               "RelativeDocumentMoniker": "Controllers\\SavingGoalController.cs",
               "ToolTip": "C:\\Users\\jordi\\Desktop\\BudgetBounder\\BudgetBounder\\BudgetBounder.API\\BudgetBounder.Api\\Controllers\\SavingGoalController.cs",
               "RelativeToolTip": "Controllers\\SavingGoalController.cs",
-              "ViewState": "AgIAABIAAAAAAAAAAAA2wCsAAAAMAAAAAAAAAA==",
+              "ViewState": "AgIAACMAAAAAAAAAAAAIwDAAAAAuAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-04-15T06:55:30.005Z",
               "EditorCaption": ""
@@ -79,8 +79,7 @@
               "RelativeToolTip": "Controllers\\UsersController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAAfAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-13T10:10:44.587Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-13T10:10:44.587Z"
             },
             {
               "$type": "Document",
@@ -92,8 +91,7 @@
               "RelativeToolTip": "Controllers\\TransactionsController.cs",
               "ViewState": "AgIAAAkAAAAAAAAAAAAAAB4AAAAiAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-13T11:46:24.823Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-13T11:46:24.823Z"
             },
             {
               "$type": "Document",
@@ -129,8 +127,7 @@
               "RelativeToolTip": "Data\\BudgetBounderDbContext.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAA6AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-13T09:38:43.711Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-13T09:38:43.711Z"
             },
             {
               "$type": "Document",
@@ -154,8 +151,7 @@
               "RelativeToolTip": "Models\\SavingGoal.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAAEAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-13T08:57:48.17Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-13T08:57:48.17Z"
             },
             {
               "$type": "Document",
@@ -167,8 +163,7 @@
               "RelativeToolTip": "Models\\User.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAWAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-13T08:57:03.693Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-13T08:57:03.693Z"
             },
             {
               "$type": "Document",
@@ -180,8 +175,7 @@
               "RelativeToolTip": "BudgetBounder.Api.csproj",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
-              "WhenOpened": "2026-04-13T08:38:31.464Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-13T08:38:31.464Z"
             }
           ]
         }

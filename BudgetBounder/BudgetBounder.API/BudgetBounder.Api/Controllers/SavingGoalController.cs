@@ -1,4 +1,5 @@
-﻿using BudgetBounder.Api.Data;
+﻿using System.Linq;
+using BudgetBounder.Api.Data;
 using BudgetBounder.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -38,10 +39,20 @@ namespace BudgetBounder.Api.Controllers
 
             return userSavingGoals;
         }
-        [HttpPut("saving goals/{id}/progress")]
-        public ActionResult<List<SavingGoal>> GetSavingProgress()
+        [HttpPut("{id}/progress")]
+        public ActionResult<SavingGoal> UpdateSavingProgress(int id, double amountToAdd)
         {
-            
+            var goal = _context.SavingGoals.FirstOrDefault(g => g.Id == id);
+            if (goal==null)
+            return NotFound();
+
+            goal.CurrentAmount += amountToAdd;
+
+            if (goal.CurrentAmount >= goal.TargetAmount)
+                goal.IsCompleted = true;
+
+            _context.SaveChanges();
+            return goal;
         }
     }
 }
