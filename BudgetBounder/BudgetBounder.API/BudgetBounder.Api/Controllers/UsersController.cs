@@ -32,12 +32,17 @@ namespace BudgetBounder.Api.Controllers
 
         [HttpPost("register")]
         [AllowAnonymous]
-        public ActionResult<User> Register(User user)
+        public ActionResult Register(RegisterDto dto)
         {
-            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(user.PasswordHash);
+            var user = new User
+            {
+                FullName = dto.FullName,
+                Email = dto.Email,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password)
+            };
             _context.Users.Add(user);
             _context.SaveChanges();
-            return user;
+            return Ok(new { user.Id, user.FullName, user.Email, user.Level, user.XP });
         }
 
         [HttpPost("login")]

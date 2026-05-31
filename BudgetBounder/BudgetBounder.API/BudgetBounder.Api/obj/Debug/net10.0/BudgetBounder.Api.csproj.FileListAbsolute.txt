@@ -356,3 +356,5 @@ C:\Users\jordi_vyuby09\Desktop\BudgetBounder\BudgetBounder\BudgetBounder.API\Bud
 C:\Users\jordi_vyuby09\Desktop\BudgetBounder\BudgetBounder\BudgetBounder.API\BudgetBounder.Api\obj\Debug\net10.0\BudgetBounder.Api.pdb
 C:\Users\jordi_vyuby09\Desktop\BudgetBounder\BudgetBounder\BudgetBounder.API\BudgetBounder.Api\obj\Debug\net10.0\BudgetBounder.Api.genruntimeconfig.cache
 C:\Users\jordi_vyuby09\Desktop\BudgetBounder\BudgetBounder\BudgetBounder.API\BudgetBounder.Api\obj\Debug\net10.0\ref\BudgetBounder.Api.dll
+C:\Users\jordi_vyuby09\Desktop\BudgetBounder\BudgetBounder\BudgetBounder.API\BudgetBounder.Api\bin\Debug\net10.0\BCrypt-Net-Next.dll
+C:\Users\jordi_vyuby09\Desktop\BudgetBounder\BudgetBounder\BudgetBounder.API\BudgetBounder.Api\bin\Debug\net10.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
