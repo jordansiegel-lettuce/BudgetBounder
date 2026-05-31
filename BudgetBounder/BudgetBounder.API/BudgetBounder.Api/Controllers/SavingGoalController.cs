@@ -1,12 +1,14 @@
 ﻿using System.Linq;
 using BudgetBounder.Api.Data;
 using BudgetBounder.Api.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BudgetBounder.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class SavingGoalsController : ControllerBase
     {
         private readonly BudgetBounderDbContext _context;
