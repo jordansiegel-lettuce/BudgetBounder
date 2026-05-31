@@ -15,7 +15,7 @@ export default function Login() {
     setError(null);
     try {
       const res = await api.post("/users/login", { email, password });
-      login(res.data.token, res.data.user);
+      login(res.data.token);
       navigate("/dashboard");
     } catch {
       setError("Invalid email or password.");

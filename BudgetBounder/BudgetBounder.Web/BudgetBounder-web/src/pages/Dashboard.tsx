@@ -15,9 +15,12 @@ export default function Dashboard() {
       <h1>BudgetBounder</h1>
       <h2>Dashboard</h2>
       {user && (
-        <p>
-          Welcome, <strong>{user.fullName}</strong>! Level {user.level} — {user.xp} XP
-        </p>
+        <div>
+          <p><strong>Name:</strong> {user.fullName}</p>
+          <p><strong>Email:</strong> {user.email}</p>
+          <p><strong>Level:</strong> {user.level}</p>
+          <p><strong>XP:</strong> {user.xp}</p>
+        </div>
       )}
       <button onClick={handleLogout}>Logout</button>
     </main>

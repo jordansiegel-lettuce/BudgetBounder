@@ -64,9 +64,11 @@ namespace BudgetBounder.Api.Controllers
 
             var claims = new[]
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Email, user.Email!),
-                new Claim(ClaimTypes.Name, user.FullName!)
+                new Claim("sub", user.Id.ToString()),
+                new Claim("email", user.Email!),
+                new Claim("name", user.FullName!),
+                new Claim("level", user.Level.ToString()),
+                new Claim("xp", user.XP.ToString()),
             };
 
             var token = new JwtSecurityToken(
