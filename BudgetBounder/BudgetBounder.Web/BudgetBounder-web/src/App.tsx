@@ -1,14 +1,39 @@
-import { useEffect, useState } from "react";
-import type { User } from "./types/User";
-import "./App.css"
-function App() {
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Dashboard from "./pages/Dashboard";
+import "./App.css";
+
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { token } = useAuth();
+  return token ? <>{children}</> : <Navigate to="/login" replace />;
+}
+
+function AppRoutes() {
   return (
-    <main>
-      <h1>BudgetBounder</h1>
-      <p>Frontend is connected and ready.</p>
-    </main>
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="*" element={<Navigate to="/login" replace />} />
+    </Routes>
   );
 }
-const API_URL = "http://localhost:5292/api";
-const [users, setUsers] = useState<User[]>([]);
-export default App;
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
+    </BrowserRouter>
+  );
+}
