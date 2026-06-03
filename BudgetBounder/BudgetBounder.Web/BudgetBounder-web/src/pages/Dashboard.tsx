@@ -1,5 +1,5 @@
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
@@ -22,6 +22,9 @@ export default function Dashboard() {
           <p><strong>XP:</strong> {user.xp}</p>
         </div>
       )}
+      <nav>
+        <Link to="/transactions">Transactions</Link>
+      </nav>
       <button onClick={handleLogout}>Logout</button>
     </main>
   );

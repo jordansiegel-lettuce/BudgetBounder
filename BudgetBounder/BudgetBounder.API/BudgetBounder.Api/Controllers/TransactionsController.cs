@@ -36,5 +36,14 @@ namespace BudgetBounder.Api.Controllers
            .ToList();
             return userTransactions;
         }
+        [HttpDelete("{id}")]
+        public ActionResult DeleteTransaction(int id)
+        {
+            var transaction = _context.Transactions.Find(id);
+            if (transaction == null) return NotFound();
+            _context.Transactions.Remove(transaction);
+            _context.SaveChanges();
+            return NoContent();
+        }
     }
 }
