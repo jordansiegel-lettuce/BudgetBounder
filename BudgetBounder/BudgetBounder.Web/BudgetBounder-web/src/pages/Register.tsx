@@ -24,43 +24,50 @@ export default function Register() {
   }
 
   return (
-    <main>
+    <main className="auth-wrapper">
       <h1>BudgetBounder</h1>
-      <h2>Create Account</h2>
-      <form onSubmit={handleSubmit}>
-        <label>
-          Full Name
-          <input
-            type="text"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            required
-          />
-        </label>
-        <label>
-          Email
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </label>
-        <label>
-          Password
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </label>
-        {error && <p style={{ color: "red" }}>{error}</p>}
-        <button type="submit">Register</button>
-      </form>
-      <p>
-        Already have an account? <Link to="/login">Login</Link>
-      </p>
+      <div className="auth-card">
+        <h2>Create Account</h2>
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label>Full Name</label>
+            <input
+              type="text"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder="Jordan Siegel"
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label>Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label>Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              required
+            />
+          </div>
+          {error && <p className="form-error">{error}</p>}
+          <button type="submit" className="btn btn-primary btn-full" style={{ marginTop: "1rem" }}>
+            Create Account
+          </button>
+        </form>
+        <p className="auth-footer">
+          Already have an account? <Link to="/login">Sign In</Link>
+        </p>
+      </div>
     </main>
   );
 }

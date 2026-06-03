@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 
@@ -93,7 +93,11 @@ export default function SavingGoals() {
   }
 
   function formatDate(dateStr: string) {
-    return new Date(dateStr).toLocaleDateString();
+    return new Date(dateStr).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
   }
 
   function progressPercent(goal: SavingGoal) {
@@ -102,143 +106,147 @@ export default function SavingGoals() {
   }
 
   return (
-    <main>
-      <h1>BudgetBounder</h1>
-      <h2>Saving Goals</h2>
-      <button onClick={() => navigate("/dashboard")}>← Back to Dashboard</button>
+    <>
+      <nav className="topbar">
+        <span className="topbar-brand">BudgetBounder</span>
+        <div className="topbar-nav">
+          <Link to="/dashboard">Dashboard</Link>
+          <Link to="/transactions">Transactions</Link>
+        </div>
+      </nav>
+      <main>
+        <div className="page-heading">
+          <h2>Saving Goals</h2>
+          <p>Set goals, track progress, and earn XP when you complete them.</p>
+        </div>
 
-      <section>
-        <h3>Create New Goal</h3>
-        <form onSubmit={handleCreateGoal}>
-          <div>
-            <label>Title</label>
-            <input
-              type="text"
-              value={form.title}
-              onChange={(e) => setForm({ ...form, title: e.target.value })}
-              required
-            />
+        <div className="section">
+          <div className="card">
+            <h3>New Goal</h3>
+            <form onSubmit={handleCreateGoal}>
+              <div className="form-grid">
+                <div className="form-group">
+                  <label>Title</label>
+                  <input
+                    type="text"
+                    value={form.title}
+                    onChange={(e) => setForm({ ...form, title: e.target.value })}
+                    placeholder="Emergency fund…"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Target Amount</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    value={form.targetAmount}
+                    onChange={(e) => setForm({ ...form, targetAmount: e.target.value })}
+                    placeholder="1000.00"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Deadline</label>
+                  <input
+                    type="date"
+                    value={form.deadline}
+                    onChange={(e) => setForm({ ...form, deadline: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="form-group" style={{ justifyContent: "flex-end" }}>
+                  <button type="submit" className="btn btn-primary">Create</button>
+                </div>
+              </div>
+              {error && <p className="form-error" style={{ marginTop: 8 }}>{error}</p>}
+            </form>
           </div>
-          <div>
-            <label>Target Amount</label>
-            <input
-              type="number"
-              step="0.01"
-              min="0.01"
-              value={form.targetAmount}
-              onChange={(e) => setForm({ ...form, targetAmount: e.target.value })}
-              required
-            />
-          </div>
-          <div>
-            <label>Deadline</label>
-            <input
-              type="date"
-              value={form.deadline}
-              onChange={(e) => setForm({ ...form, deadline: e.target.value })}
-              required
-            />
-          </div>
-          {error && <p style={{ color: "red" }}>{error}</p>}
-          <button type="submit">Create Goal</button>
-        </form>
-      </section>
+        </div>
 
-      <section>
-        <h3>My Goals</h3>
-        {loading ? (
-          <p>Loading...</p>
-        ) : goals.length === 0 ? (
-          <p>No saving goals yet.</p>
-        ) : (
-          <ul style={{ listStyle: "none", padding: 0 }}>
-            {goals.map((g) => {
-              const pct = progressPercent(g);
-              const isOpen = g.id in progressInputs;
-              return (
-                <li
-                  key={g.id}
-                  style={{
-                    marginBottom: 24,
-                    padding: 16,
-                    border: "1px solid #ccc",
-                    borderRadius: 8,
-                  }}
-                >
-                  <div>
-                    <strong>{g.title}</strong>
-                    <span
-                      style={{
-                        marginLeft: 12,
-                        color: g.isCompleted ? "green" : "#888",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      {g.isCompleted ? "Completed" : "In Progress"}
-                    </span>
-                  </div>
-                  <div>
-                    ${g.currentAmount.toFixed(2)} / ${g.targetAmount.toFixed(2)} — Deadline:{" "}
-                    {formatDate(g.deadline)}
-                  </div>
-                  <div
-                    style={{
-                      margin: "8px 0",
-                      background: "#eee",
-                      borderRadius: 4,
-                      height: 12,
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: `${pct}%`,
-                        background: g.isCompleted ? "green" : "#4a90d9",
-                        height: "100%",
-                        borderRadius: 4,
-                        transition: "width 0.3s",
-                      }}
-                    />
-                  </div>
-                  <div style={{ fontSize: 12, color: "#666" }}>{pct}%</div>
-
-                  {justCompleted.has(g.id) && (
-                    <p style={{ color: "green", fontWeight: "bold" }}>
-                      Congratulations! Goal completed — +100 XP earned!
-                    </p>
-                  )}
-
-                  {!g.isCompleted && (
-                    <div style={{ marginTop: 8 }}>
-                      <button onClick={() => toggleProgressInput(g.id)}>
-                        {isOpen ? "Cancel" : "Add Progress"}
-                      </button>
-                      {isOpen && (
-                        <span style={{ marginLeft: 8 }}>
-                          <input
-                            type="number"
-                            step="0.01"
-                            min="0.01"
-                            placeholder="Amount"
-                            value={progressInputs[g.id]}
-                            onChange={(e) =>
-                              setProgressInputs((prev) => ({
-                                ...prev,
-                                [g.id]: e.target.value,
-                              }))
-                            }
-                            style={{ width: 100, marginRight: 8 }}
-                          />
-                          <button onClick={() => handleAddProgress(g)}>Save</button>
-                        </span>
-                      )}
+        <div className="section">
+          <h3>My Goals</h3>
+          {loading ? (
+            <p className="empty">Loading…</p>
+          ) : goals.length === 0 ? (
+            <p className="empty">No goals yet. Create one above.</p>
+          ) : (
+            <ul className="goals-list">
+              {goals.map((g) => {
+                const pct = progressPercent(g);
+                const isOpen = g.id in progressInputs;
+                return (
+                  <li key={g.id} className="goal-card">
+                    <div className="goal-header">
+                      <span className="goal-title">{g.title}</span>
+                      <span className={`badge ${g.isCompleted ? "badge-completed" : "badge-in-progress"}`}>
+                        {g.isCompleted ? "Completed" : "In Progress"}
+                      </span>
                     </div>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
-    </main>
+
+                    <div className="goal-amounts">
+                      <strong>${g.currentAmount.toFixed(2)}</strong>
+                      {" / "}
+                      ${g.targetAmount.toFixed(2)} saved
+                    </div>
+
+                    <div className="progress-track">
+                      <div
+                        className={`progress-fill${g.isCompleted ? " complete" : ""}`}
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                    <div className="goal-pct">{pct}%</div>
+
+                    <div className="goal-meta">Deadline: {formatDate(g.deadline)}</div>
+
+                    {justCompleted.has(g.id) && (
+                      <p className="congrats">
+                        Congratulations! Goal completed — +100 XP earned!
+                      </p>
+                    )}
+
+                    {!g.isCompleted && (
+                      <div className="goal-actions">
+                        <button
+                          className="btn btn-ghost btn-sm"
+                          onClick={() => toggleProgressInput(g.id)}
+                        >
+                          {isOpen ? "Cancel" : "Add Progress"}
+                        </button>
+                        {isOpen && (
+                          <>
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0.01"
+                              placeholder="Amount"
+                              value={progressInputs[g.id]}
+                              onChange={(e) =>
+                                setProgressInputs((prev) => ({
+                                  ...prev,
+                                  [g.id]: e.target.value,
+                                }))
+                              }
+                            />
+                            <button
+                              className="btn btn-primary btn-sm"
+                              onClick={() => handleAddProgress(g)}
+                            >
+                              Save
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      </main>
+    </>
   );
 }
