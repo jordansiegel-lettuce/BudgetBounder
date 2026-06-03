@@ -32,7 +32,7 @@ export default function SavingGoals() {
   useEffect(() => {
     if (!user) return;
     api
-      .get<SavingGoal[]>(`/savingoals/user/${user.id}`)
+      .get<SavingGoal[]>(`/savinggoals/user/${user.id}`)
       .then((res: { data: SavingGoal[] }) => setGoals(res.data))
       .catch(() => setError("Failed to load saving goals"))
       .finally(() => setLoading(false));
@@ -43,7 +43,7 @@ export default function SavingGoals() {
     if (!user) return;
     setError(null);
     try {
-      const res = await api.post<SavingGoal>("/savingoals", {
+      const res = await api.post<SavingGoal>("/savinggoals", {
         title: form.title,
         targetAmount: parseFloat(form.targetAmount),
         currentAmount: 0,
@@ -75,7 +75,7 @@ export default function SavingGoals() {
     setError(null);
     try {
       const res = await api.put<SavingGoal>(
-        `/savingoals/${goal.id}/progress?amountToAdd=${amount}`
+        `/savinggoals/${goal.id}/progress?amountToAdd=${amount}`
       );
       const updated = res.data;
       setGoals((prev) => prev.map((g) => (g.id === goal.id ? updated : g)));
