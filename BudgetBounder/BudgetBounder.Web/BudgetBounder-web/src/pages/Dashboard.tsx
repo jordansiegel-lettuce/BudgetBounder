@@ -24,6 +24,8 @@ export default function Dashboard() {
       )}
       <nav>
         <Link to="/transactions">Transactions</Link>
+        {" | "}
+        <Link to="/saving-goals">Saving Goals</Link>
       </nav>
       <button onClick={handleLogout}>Logout</button>
     </main>

@@ -4,6 +4,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Transactions from "./pages/Transactions";
+import SavingGoals from "./pages/SavingGoals";
 import "./App.css";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -29,6 +30,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <Transactions />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/saving-goals"
+        element={
+          <ProtectedRoute>
+            <SavingGoals />
           </ProtectedRoute>
         }
       />
