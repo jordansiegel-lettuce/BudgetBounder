@@ -3,24 +3,36 @@
   "WorkspaceRootPath": "C:\\Users\\jordi_vyuby09\\Desktop\\BudgetBounder\\BudgetBounder\\BudgetBounder.API\\BudgetBounder.Api\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{6F6AF1FC-4C0D-7314-3D16-729A607881D1}|BudgetBounder.Api.csproj|c:\\users\\jordi_vyuby09\\desktop\\budgetbounder\\budgetbounder\\budgetbounder.api\\budgetbounder.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{6F6AF1FC-4C0D-7314-3D16-729A607881D1}|BudgetBounder.Api.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{6F6AF1FC-4C0D-7314-3D16-729A607881D1}|BudgetBounder.Api.csproj|c:\\users\\jordi_vyuby09\\desktop\\budgetbounder\\budgetbounder\\budgetbounder.api\\budgetbounder.api\\controllers\\aicontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6F6AF1FC-4C0D-7314-3D16-729A607881D1}|BudgetBounder.Api.csproj|solutionrelative:controllers\\aicontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6F6AF1FC-4C0D-7314-3D16-729A607881D1}|BudgetBounder.Api.csproj|c:\\users\\jordi_vyuby09\\desktop\\budgetbounder\\budgetbounder\\budgetbounder.api\\budgetbounder.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{6F6AF1FC-4C0D-7314-3D16-729A607881D1}|BudgetBounder.Api.csproj|solutionrelative:appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6F6AF1FC-4C0D-7314-3D16-729A607881D1}|BudgetBounder.Api.csproj|c:\\users\\jordi_vyuby09\\desktop\\budgetbounder\\budgetbounder\\budgetbounder.api\\budgetbounder.api\\controllers\\userscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6F6AF1FC-4C0D-7314-3D16-729A607881D1}|BudgetBounder.Api.csproj|solutionrelative:controllers\\userscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6F6AF1FC-4C0D-7314-3D16-729A607881D1}|BudgetBounder.Api.csproj|c:\\users\\jordi_vyuby09\\desktop\\budgetbounder\\budgetbounder\\budgetbounder.api\\budgetbounder.api\\models\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6F6AF1FC-4C0D-7314-3D16-729A607881D1}|BudgetBounder.Api.csproj|solutionrelative:models\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{6F6AF1FC-4C0D-7314-3D16-729A607881D1}|BudgetBounder.Api.csproj|c:\\users\\jordi_vyuby09\\desktop\\budgetbounder\\budgetbounder\\budgetbounder.api\\budgetbounder.api\\controllers\\savinggoalcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{6F6AF1FC-4C0D-7314-3D16-729A607881D1}|BudgetBounder.Api.csproj|solutionrelative:controllers\\savinggoalcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{6F6AF1FC-4C0D-7314-3D16-729A607881D1}|BudgetBounder.Api.csproj|c:\\users\\jordi_vyuby09\\desktop\\budgetbounder\\budgetbounder\\budgetbounder.api\\budgetbounder.api\\data\\budgetbounderdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{6F6AF1FC-4C0D-7314-3D16-729A607881D1}|BudgetBounder.Api.csproj|solutionrelative:data\\budgetbounderdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{6F6AF1FC-4C0D-7314-3D16-729A607881D1}|BudgetBounder.Api.csproj|c:\\users\\jordi_vyuby09\\desktop\\budgetbounder\\budgetbounder\\budgetbounder.api\\budgetbounder.api\\models\\savinggoal.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{6F6AF1FC-4C0D-7314-3D16-729A607881D1}|BudgetBounder.Api.csproj|solutionrelative:models\\savinggoal.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{6F6AF1FC-4C0D-7314-3D16-729A607881D1}|BudgetBounder.Api.csproj|c:\\users\\jordi_vyuby09\\desktop\\budgetbounder\\budgetbounder\\budgetbounder.api\\budgetbounder.api\\models\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{6F6AF1FC-4C0D-7314-3D16-729A607881D1}|BudgetBounder.Api.csproj|solutionrelative:models\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{6F6AF1FC-4C0D-7314-3D16-729A607881D1}|BudgetBounder.Api.csproj|c:\\users\\jordi_vyuby09\\desktop\\budgetbounder\\budgetbounder\\budgetbounder.api\\budgetbounder.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6F6AF1FC-4C0D-7314-3D16-729A607881D1}|BudgetBounder.Api.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6F6AF1FC-4C0D-7314-3D16-729A607881D1}|BudgetBounder.Api.csproj|c:\\users\\jordi_vyuby09\\desktop\\budgetbounder\\budgetbounder\\budgetbounder.api\\budgetbounder.api\\data\\budgetbounderdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6F6AF1FC-4C0D-7314-3D16-729A607881D1}|BudgetBounder.Api.csproj|solutionrelative:data\\budgetbounderdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{6F6AF1FC-4C0D-7314-3D16-729A607881D1}|BudgetBounder.Api.csproj|c:\\users\\jordi_vyuby09\\desktop\\budgetbounder\\budgetbounder\\budgetbounder.api\\budgetbounder.api\\controllers\\transactionscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -31,16 +43,8 @@
       "RelativeMoniker": "D:0:0:{6F6AF1FC-4C0D-7314-3D16-729A607881D1}|BudgetBounder.Api.csproj|solutionrelative:budgetbounder.api.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{6F6AF1FC-4C0D-7314-3D16-729A607881D1}|BudgetBounder.Api.csproj|c:\\users\\jordi_vyuby09\\desktop\\budgetbounder\\budgetbounder\\budgetbounder.api\\budgetbounder.api\\controllers\\userscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{6F6AF1FC-4C0D-7314-3D16-729A607881D1}|BudgetBounder.Api.csproj|solutionrelative:controllers\\userscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{6F6AF1FC-4C0D-7314-3D16-729A607881D1}|BudgetBounder.Api.csproj|c:\\users\\jordi_vyuby09\\desktop\\budgetbounder\\budgetbounder\\budgetbounder.api\\budgetbounder.api\\models\\transaction.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{6F6AF1FC-4C0D-7314-3D16-729A607881D1}|BudgetBounder.Api.csproj|solutionrelative:models\\transaction.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{6F6AF1FC-4C0D-7314-3D16-729A607881D1}|BudgetBounder.Api.csproj|c:\\users\\jordi_vyuby09\\desktop\\budgetbounder\\budgetbounder\\budgetbounder.api\\budgetbounder.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{6F6AF1FC-4C0D-7314-3D16-729A607881D1}|BudgetBounder.Api.csproj|solutionrelative:appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     }
   ],
   "DocumentGroupContainers": [
@@ -50,40 +54,54 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 4,
+          "SelectedChildIndex": 0,
           "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "AiController.cs",
+              "DocumentMoniker": "C:\\Users\\jordi_vyuby09\\Desktop\\BudgetBounder\\BudgetBounder\\BudgetBounder.API\\BudgetBounder.Api\\Controllers\\AiController.cs",
+              "RelativeDocumentMoniker": "Controllers\\AiController.cs",
+              "ToolTip": "C:\\Users\\jordi_vyuby09\\Desktop\\BudgetBounder\\BudgetBounder\\BudgetBounder.API\\BudgetBounder.Api\\Controllers\\AiController.cs",
+              "RelativeToolTip": "Controllers\\AiController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACwAAAAtAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-06T16:34:35.302Z",
+              "EditorCaption": ""
+            },
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 4,
               "Title": "SavingGoalController.cs",
               "DocumentMoniker": "C:\\Users\\jordi_vyuby09\\Desktop\\BudgetBounder\\BudgetBounder\\BudgetBounder.API\\BudgetBounder.Api\\Controllers\\SavingGoalController.cs",
               "RelativeDocumentMoniker": "Controllers\\SavingGoalController.cs",
               "ToolTip": "C:\\Users\\jordi_vyuby09\\Desktop\\BudgetBounder\\BudgetBounder\\BudgetBounder.API\\BudgetBounder.Api\\Controllers\\SavingGoalController.cs",
               "RelativeToolTip": "Controllers\\SavingGoalController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAADcAAAANAAAAAAAAAA==",
+              "ViewState": "AgIAACQAAAAAAAAAAAA9wDgAAAANAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-04-15T06:55:30.005Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 2,
               "Title": "UsersController.cs",
               "DocumentMoniker": "C:\\Users\\jordi_vyuby09\\Desktop\\BudgetBounder\\BudgetBounder\\BudgetBounder.API\\BudgetBounder.Api\\Controllers\\UsersController.cs",
               "RelativeDocumentMoniker": "Controllers\\UsersController.cs",
               "ToolTip": "C:\\Users\\jordi_vyuby09\\Desktop\\BudgetBounder\\BudgetBounder\\BudgetBounder.API\\BudgetBounder.Api\\Controllers\\UsersController.cs",
               "RelativeToolTip": "Controllers\\UsersController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAAfAAAAAAAAAA==",
+              "ViewState": "AgIAACMAAAAAAAAAAAAwwFMAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-13T10:10:44.587Z"
+              "WhenOpened": "2026-04-13T10:10:44.587Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 8,
               "Title": "TransactionsController.cs",
               "DocumentMoniker": "C:\\Users\\jordi_vyuby09\\Desktop\\BudgetBounder\\BudgetBounder\\BudgetBounder.API\\BudgetBounder.Api\\Controllers\\TransactionsController.cs",
               "RelativeDocumentMoniker": "Controllers\\TransactionsController.cs",
@@ -95,32 +113,45 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 6,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\jordi_vyuby09\\Desktop\\BudgetBounder\\BudgetBounder\\BudgetBounder.API\\BudgetBounder.Api\\Program.cs",
               "RelativeDocumentMoniker": "Program.cs",
               "ToolTip": "C:\\Users\\jordi_vyuby09\\Desktop\\BudgetBounder\\BudgetBounder\\BudgetBounder.API\\BudgetBounder.Api\\Program.cs",
               "RelativeToolTip": "Program.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABsAAAANAAAAAAAAAA==",
+              "ViewState": "AgIAAAgAAAAAAAAAAAA4wCIAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-13T09:43:36.907Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-13T09:43:36.907Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 1,
               "Title": "appsettings.json",
               "DocumentMoniker": "C:\\Users\\jordi_vyuby09\\Desktop\\BudgetBounder\\BudgetBounder\\BudgetBounder.API\\BudgetBounder.Api\\appsettings.json",
               "RelativeDocumentMoniker": "appsettings.json",
               "ToolTip": "C:\\Users\\jordi_vyuby09\\Desktop\\BudgetBounder\\BudgetBounder\\BudgetBounder.API\\BudgetBounder.Api\\appsettings.json",
               "RelativeToolTip": "appsettings.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAAIAAAAAAAAAAAAAABQAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2026-04-13T09:40:32.238Z"
+              "WhenOpened": "2026-04-13T09:40:32.238Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
+              "Title": "User.cs",
+              "DocumentMoniker": "C:\\Users\\jordi_vyuby09\\Desktop\\BudgetBounder\\BudgetBounder\\BudgetBounder.API\\BudgetBounder.Api\\Models\\User.cs",
+              "RelativeDocumentMoniker": "Models\\User.cs",
+              "ToolTip": "C:\\Users\\jordi_vyuby09\\Desktop\\BudgetBounder\\BudgetBounder\\BudgetBounder.API\\BudgetBounder.Api\\Models\\User.cs",
+              "RelativeToolTip": "Models\\User.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAWAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-13T08:57:03.693Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
               "Title": "BudgetBounderDbContext.cs",
               "DocumentMoniker": "C:\\Users\\jordi_vyuby09\\Desktop\\BudgetBounder\\BudgetBounder\\BudgetBounder.API\\BudgetBounder.Api\\Data\\BudgetBounderDbContext.cs",
               "RelativeDocumentMoniker": "Data\\BudgetBounderDbContext.cs",
@@ -132,7 +163,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 10,
               "Title": "Transaction.cs",
               "DocumentMoniker": "C:\\Users\\jordi_vyuby09\\Desktop\\BudgetBounder\\BudgetBounder\\BudgetBounder.API\\BudgetBounder.Api\\Models\\Transaction.cs",
               "RelativeDocumentMoniker": "Models\\Transaction.cs",
@@ -144,7 +175,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 5,
               "Title": "SavingGoal.cs",
               "DocumentMoniker": "C:\\Users\\jordi_vyuby09\\Desktop\\BudgetBounder\\BudgetBounder\\BudgetBounder.API\\BudgetBounder.Api\\Models\\SavingGoal.cs",
               "RelativeDocumentMoniker": "Models\\SavingGoal.cs",
@@ -156,19 +187,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "User.cs",
-              "DocumentMoniker": "C:\\Users\\jordi_vyuby09\\Desktop\\BudgetBounder\\BudgetBounder\\BudgetBounder.API\\BudgetBounder.Api\\Models\\User.cs",
-              "RelativeDocumentMoniker": "Models\\User.cs",
-              "ToolTip": "C:\\Users\\jordi_vyuby09\\Desktop\\BudgetBounder\\BudgetBounder\\BudgetBounder.API\\BudgetBounder.Api\\Models\\User.cs",
-              "RelativeToolTip": "Models\\User.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAWAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-13T08:57:03.693Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 9,
               "Title": "BudgetBounder.Api.csproj",
               "DocumentMoniker": "C:\\Users\\jordi_vyuby09\\Desktop\\BudgetBounder\\BudgetBounder\\BudgetBounder.API\\BudgetBounder.Api\\BudgetBounder.Api.csproj",
               "RelativeDocumentMoniker": "BudgetBounder.Api.csproj",

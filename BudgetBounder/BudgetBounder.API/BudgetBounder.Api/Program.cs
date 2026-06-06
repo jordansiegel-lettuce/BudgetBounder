@@ -22,6 +22,8 @@ namespace BudgetBounder.Api
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            builder.Services.AddHttpClient();
+
             builder.Services.AddDbContext<BudgetBounderDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 

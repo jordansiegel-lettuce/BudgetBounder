@@ -1,8 +1,18 @@
 import { useAuth } from "../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
-
+import { useEffect, useState } from "react";
+import api from "../services/api";
 export default function Dashboard() {
   const { user, logout } = useAuth();
+  const [freshUser, setFreshUser] = useState<any>(null);
+
+useEffect(() => {
+  if (user?.id) {
+    api.get(`/users/${user.id}`)
+      .then((res: any) => setFreshUser(res.data))
+      .catch(() => {}); 
+  }
+}, [user]);
   const navigate = useNavigate();
 
   function handleLogout() {
@@ -17,6 +27,8 @@ export default function Dashboard() {
         <div className="topbar-nav">
           <Link to="/transactions">Transactions</Link>
           <Link to="/saving-goals">Saving Goals</Link>
+          <Link to="/missions">Missions</Link>
+          <Link to="/ai-assistant">AI Assistant</Link>
           <button className="btn btn-ghost btn-sm" onClick={handleLogout} style={{ marginLeft: 8 }}>
             Logout
           </button>
@@ -36,11 +48,11 @@ export default function Dashboard() {
             </div>
             <div className="stat-card">
               <div className="stat-label">Level</div>
-              <div className="stat-value">{user.level}</div>
+              <div className="stat-value">{freshUser?.level ?? user.level}</div>
             </div>
             <div className="stat-card">
               <div className="stat-label">XP</div>
-              <div className="stat-value">{user.xp}</div>
+              <div className="stat-value">{freshUser?.xp ?? user.xp}</div>
             </div>
           </div>
         )}
@@ -48,6 +60,8 @@ export default function Dashboard() {
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
           <Link to="/transactions" className="btn btn-primary">View Transactions</Link>
           <Link to="/saving-goals" className="btn btn-ghost">Saving Goals</Link>
+          <Link to="/missions" className="btn btn-ghost">Missions</Link>
+          <Link to="/ai-assistant" className="btn btn-ghost">AI Assistant</Link>
         </div>
       </main>
     </>

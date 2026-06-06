@@ -81,5 +81,13 @@ namespace BudgetBounder.Api.Controllers
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
+        [HttpGet("{id}")]
+        public ActionResult GetById(int id)
+        {
+            var user = _context.Users.FirstOrDefault(u => u.Id == id);
+            if (user == null) return NotFound();
+            return Ok(new { user.Id, user.FullName, user.Email, user.Level, user.XP });
+        }
     }
 }

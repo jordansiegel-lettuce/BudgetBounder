@@ -5,6 +5,8 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Transactions from "./pages/Transactions";
 import SavingGoals from "./pages/SavingGoals";
+import AiAssistant from "./pages/AiAssistant";
+import Missions from "./pages/Missions";
 import "./App.css";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -38,6 +40,22 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <SavingGoals />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/ai-assistant"
+        element={
+          <ProtectedRoute>
+            <AiAssistant />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/missions"
+        element={
+          <ProtectedRoute>
+            <Missions />
           </ProtectedRoute>
         }
       />
