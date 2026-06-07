@@ -35,7 +35,7 @@ namespace BudgetBounder.Api.Controllers
 
             var txSummary = transactions.Count > 0
                 ? string.Join("\n", transactions.Select(t =>
-                    $"- {t.Date:yyyy-MM-dd}: {t.Title} ({t.Category}) — {(t.Type == TransactionType.Income ? "+" : "-")}${t.Amount:F2}"))
+                    $"- {t.Date:yyyy-dd-MM}: {t.Title} ({t.Category}) — {(t.Type == TransactionType.Income ? "+" : "-")}${t.Amount:F2}"))
                 : "No transactions found.";
 
             var apiKey = _configuration["Groq:ApiKey"]?.Trim();

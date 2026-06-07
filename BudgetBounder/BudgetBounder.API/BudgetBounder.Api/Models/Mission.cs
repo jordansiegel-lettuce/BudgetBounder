@@ -19,5 +19,6 @@ namespace BudgetBounder.Api.Models
         public string MissionType { get; set; } = "";
         public double TargetValue { get; set; }
         public double CurrentProgress { get; set; }
+        public bool IsAiGenerated { get; set; } = false;
     }
 }

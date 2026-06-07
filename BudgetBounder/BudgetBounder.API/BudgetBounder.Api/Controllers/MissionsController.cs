@@ -43,6 +43,17 @@ namespace BudgetBounder.Api.Controllers
             var user = _context.Users.FirstOrDefault(u => u.Id == userId);
             if (user == null) return NotFound("User not found");
 
+            // Delete existing incomplete AI missions so re-roll works cleanly
+            var now = DateTime.UtcNow;
+            var existingAiMissions = _context.Missions
+                .Where(m => m.UserId == userId && m.IsAiGenerated && !m.IsCompleted && m.ExpiresAt > now)
+                .ToList();
+            if (existingAiMissions.Count > 0)
+            {
+                _context.Missions.RemoveRange(existingAiMissions);
+                _context.SaveChanges();
+            }
+
             var transactions = _context.Transactions
                 .Where(t => t.UserId == userId)
                 .OrderByDescending(t => t.Date)
@@ -65,23 +76,23 @@ namespace BudgetBounder.Api.Controllers
                     {
                         role = "system",
                         content =
-                            "You are a financial mission generator for BudgetBounder, a personal finance app.\n" +
-                            "Rules:\n" +
-                            "- Respond with ONLY a valid JSON array. No markdown fences, no extra text, nothing before or after the JSON.\n" +
-                            "- Each object must have exactly these fields:\n" +
-                            "  title (string), description (string), xpReward (integer 50-200), difficulty (\"Easy\"|\"Medium\"|\"Hard\"),\n" +
-                            "  missionType (\"LogExpenses\"|\"StayUnderBudget\"|\"SavingGoal\"|\"DailyStreak\"), targetValue (number)\n" +
-                            "- Make missions specific to the user's spending patterns."
+                            "You are a financial mission generator for BudgetBounder, a personal finance app. " +
+                            "Return ONLY a valid JSON array with exactly 3 mission objects, no extra text, no markdown, just the raw JSON array. " +
+                            "Each object must have: title (string), description (string), difficulty (Easy/Medium/Hard), " +
+                            "xpReward (number between 50-200), missionType (use StayUnderBudget, LogExpenses, or SavingGoal), " +
+                            "targetValue (number), durationDays (number). " +
+                            "Make missions specific to the user's spending patterns. Output nothing except the JSON array."
                     },
                     new
                     {
                         role = "user",
                         content =
-                            $"Based on the user's last {transactions.Count} transactions below, generate exactly 3 personalized financial missions.\n\n" +
+                            $"Based on the user's last {transactions.Count} transactions below, generate exactly 3 personalized financial missions. " +
+                            $"Return ONLY a valid JSON array with exactly 3 objects.\n\n" +
                             $"User transactions:\n{txSummary}"
                     }
                 },
-                max_tokens = 512,
+                max_tokens = 1024,
                 temperature = 0.7
             };
 
@@ -135,27 +146,21 @@ namespace BudgetBounder.Api.Controllers
                 var dtos = JsonSerializer.Deserialize<List<MissionDto>>(rawText, options)
                            ?? throw new Exception("Deserialized to null");
 
-                var now = DateTime.UtcNow;
-                var existingTypes = _context.Missions
-                    .Where(m => m.UserId == userId && !m.IsCompleted && m.ExpiresAt > now)
-                    .Select(m => m.MissionType)
-                    .ToHashSet();
-
-                missions = dtos
-                    .Where(dto => !existingTypes.Contains(dto.MissionType))
-                    .Select(dto => new Mission
-                    {
-                        UserId = userId,
-                        Title = dto.Title,
-                        Description = dto.Description,
-                        XPReward = dto.XpReward,
-                        Difficulty = dto.Difficulty,
-                        MissionType = dto.MissionType,
-                        TargetValue = dto.TargetValue,
-                        CurrentProgress = 0,
-                        CreatedAt = now,
-                        ExpiresAt = now.AddDays(7)
-                    }).ToList();
+                now = DateTime.UtcNow;
+                missions = dtos.Select(dto => new Mission
+                {
+                    UserId = userId,
+                    Title = dto.Title,
+                    Description = dto.Description,
+                    XPReward = dto.XpReward,
+                    Difficulty = dto.Difficulty,
+                    MissionType = dto.MissionType,
+                    TargetValue = dto.TargetValue,
+                    CurrentProgress = 0,
+                    IsAiGenerated = true,
+                    CreatedAt = now,
+                    ExpiresAt = now.AddDays(dto.DurationDays > 0 ? dto.DurationDays : 7)
+                }).ToList();
             }
             catch (Exception ex)
             {
@@ -207,5 +212,6 @@ namespace BudgetBounder.Api.Controllers
         public string Difficulty { get; set; } = "Easy";
         public string MissionType { get; set; } = "";
         public double TargetValue { get; set; }
+        public int DurationDays { get; set; }
     }
 }

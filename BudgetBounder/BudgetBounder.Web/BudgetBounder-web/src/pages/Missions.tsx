@@ -14,6 +14,7 @@ interface Mission {
   currentProgress: number;
   isCompleted: boolean;
   expiresAt: string;
+  isAiGenerated: boolean;
 }
 
 const difficultyStyle: Record<string, React.CSSProperties> = {
@@ -32,8 +33,10 @@ function daysLeft(expiresAt: string) {
   return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
 }
 
-function isDaily(expiresAt: string) {
-  return daysLeft(expiresAt) <= 1;
+const DAILY_TYPES = ["LogExpenses", "LogIncome"];
+
+function isDaily(missionType: string) {
+  return DAILY_TYPES.includes(missionType);
 }
 
 function MissionCard({
@@ -50,7 +53,7 @@ function MissionCard({
       ? Math.min(100, Math.round((m.currentProgress / m.targetValue) * 100))
       : 0;
   const days = daysLeft(m.expiresAt);
-  const daily = isDaily(m.expiresAt);
+  const daily = isDaily(m.missionType);
 
   return (
     <div className="card" style={{ gap: 10 }}>
@@ -184,7 +187,11 @@ export default function Missions() {
     setError(null);
     try {
       const res = await api.post<Mission[]>(`/missions/generate/${user.id}`);
-      setMissions((prev) => [...res.data, ...prev]);
+      // Replace existing AI missions with the new ones; keep static missions intact
+      setMissions((prev) => [
+        ...prev.filter((m) => !m.isAiGenerated),
+        ...res.data,
+      ]);
     } catch {
       setError("Failed to generate missions. Please try again.");
     } finally {
@@ -205,8 +212,9 @@ export default function Missions() {
     }
   }
 
-  const daily = missions.filter((m) => isDaily(m.expiresAt));
-  const weekly = missions.filter((m) => !isDaily(m.expiresAt));
+  const daily = missions.filter((m) => !m.isAiGenerated && isDaily(m.missionType));
+  const weekly = missions.filter((m) => !m.isAiGenerated && !isDaily(m.missionType));
+  const personalGoals = missions.filter((m) => m.isAiGenerated);
 
   return (
     <>
@@ -226,13 +234,13 @@ export default function Missions() {
         </div>
 
         <div className="section">
-          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 4 }}>
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginBottom: 4 }}>
             <button
               className="btn btn-primary"
               onClick={handleGenerate}
               disabled={generating}
             >
-              {generating ? "Generating…" : "Generate My Missions"}
+              {generating ? "Generating…" : personalGoals.length === 0 ? "Generate My Missions" : "Re-roll Missions"}
             </button>
           </div>
           {error && (
@@ -244,10 +252,6 @@ export default function Missions() {
 
         {loading ? (
           <p className="empty">Loading…</p>
-        ) : missions.length === 0 ? (
-          <p className="empty">
-            No active missions. Click "Generate My Missions" to get AI-powered challenges!
-          </p>
         ) : (
           <>
             <MissionSection
@@ -262,6 +266,17 @@ export default function Missions() {
               completing={completing}
               onComplete={handleComplete}
             />
+            <MissionSection
+              title="Personal Goals"
+              missions={personalGoals}
+              completing={completing}
+              onComplete={handleComplete}
+            />
+            {missions.length === 0 && (
+              <p className="empty">
+                No active missions. Click "Generate My Missions" to get AI-powered challenges!
+              </p>
+            )}
           </>
         )}
       </main>
