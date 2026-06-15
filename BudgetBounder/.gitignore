@@ -1,0 +1,30 @@
+# ── Secrets (never commit) ────────────────────────────────────────────────────
+appsettings.Development.json
+appsettings.*.json
+!appsettings.json
+.env
+.env.*
+!.env.example
+
+# ── .NET build output ─────────────────────────────────────────────────────────
+bin/
+obj/
+*.user
+*.suo
+.vs/
+
+# ── Node / React / Expo ───────────────────────────────────────────────────────
+node_modules/
+dist/
+dist-ssr/
+*.local
+.expo/
+.expo-shared/
+
+# ── OS / editor ───────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
