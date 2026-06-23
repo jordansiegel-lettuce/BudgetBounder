@@ -1,4 +1,4 @@
-# ── Secrets (never commit) ────────────────────────────────────────────────────
+
 appsettings.Development.json
 appsettings.*.json
 !appsettings.json
