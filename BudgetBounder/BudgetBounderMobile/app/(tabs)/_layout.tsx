@@ -13,21 +13,58 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarInactiveTintColor: Colors[colorScheme ?? 'light'].tabIconDefault,
+        tabBarStyle: {
+          backgroundColor: Colors[colorScheme ?? 'light'].carbon,
+          borderTopColor: Colors[colorScheme ?? 'light'].chromeSoft,
+          borderTopWidth: 2,
+          height: 76,
+          paddingBottom: 12,
+          paddingTop: 8,
+        },
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '900',
+          textTransform: 'uppercase',
+        },
         headerShown: false,
         tabBarButton: HapticTab,
       }}>
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: 'Dashboard',
+          tabBarIcon: ({ color }) => <IconSymbol size={25} name="house.fill" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="transactions"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: 'Coins',
+          tabBarIcon: ({ color }) => <IconSymbol size={25} name="creditcard.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="goals"
+        options={{
+          title: 'Vault',
+          tabBarIcon: ({ color }) => <IconSymbol size={25} name="target" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="missions"
+        options={{
+          title: 'Quests',
+          tabBarIcon: ({ color }) => <IconSymbol size={25} name="checklist" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profile',
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={25} name="person.crop.circle.fill" color={color} />
+          ),
         }}
       />
     </Tabs>
