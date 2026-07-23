@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using BudgetBounder.Api.Authorization;
+using BudgetBounder.Api.Services;
 
 namespace BudgetBounder.Api
 {
@@ -23,6 +25,11 @@ namespace BudgetBounder.Api
             builder.Services.AddSwaggerGen();
 
             builder.Services.AddHttpClient();
+            builder.Services.AddHttpContextAccessor();
+            builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+            builder.Services.AddScoped<FinancialSummaryService>();
+            builder.Services.AddScoped<AdminDashboardService>();
+            builder.Services.AddHostedService<AdminBootstrapHostedService>();
 
             builder.Services.AddDbContext<BudgetBounderDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -50,6 +57,11 @@ namespace BudgetBounder.Api
                             Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
                     };
                 });
+
+            builder.Services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AdminOnly", policy => policy.RequireRole(UserRoles.Admin));
+            });
 
             var app = builder.Build();
 

@@ -3,29 +3,26 @@ import React from 'react';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { bb } from '@/src/theme/tokens';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        tabBarInactiveTintColor: Colors[colorScheme ?? 'light'].tabIconDefault,
+        tabBarActiveTintColor: bb.colors.emerald,
+        tabBarInactiveTintColor: bb.colors.muted,
         tabBarStyle: {
-          backgroundColor: Colors[colorScheme ?? 'light'].carbon,
-          borderTopColor: Colors[colorScheme ?? 'light'].chromeSoft,
-          borderTopWidth: 2,
-          height: 76,
+          backgroundColor: bb.colors.surface,
+          borderTopColor: bb.colors.border,
+          borderTopWidth: 1,
+          height: 78,
           paddingBottom: 12,
           paddingTop: 8,
         },
         tabBarLabelStyle: {
           fontSize: 11,
-          fontWeight: '900',
-          textTransform: 'uppercase',
+          fontFamily: 'monospace',
+          fontWeight: '800',
         },
         headerShown: false,
         tabBarButton: HapticTab,
@@ -33,28 +30,28 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Dashboard',
+          title: 'Home',
           tabBarIcon: ({ color }) => <IconSymbol size={25} name="house.fill" color={color} />,
         }}
       />
       <Tabs.Screen
         name="transactions"
         options={{
-          title: 'Coins',
+          title: 'Activity',
           tabBarIcon: ({ color }) => <IconSymbol size={25} name="creditcard.fill" color={color} />,
         }}
       />
       <Tabs.Screen
         name="goals"
         options={{
-          title: 'Vault',
+          title: 'Goals',
           tabBarIcon: ({ color }) => <IconSymbol size={25} name="target" color={color} />,
         }}
       />
       <Tabs.Screen
         name="missions"
         options={{
-          title: 'Quests',
+          title: 'Missions',
           tabBarIcon: ({ color }) => <IconSymbol size={25} name="checklist" color={color} />,
         }}
       />

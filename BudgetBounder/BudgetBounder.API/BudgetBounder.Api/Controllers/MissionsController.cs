@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using BudgetBounder.Api.Authorization;
 
 namespace BudgetBounder.Api.Controllers
 {
@@ -17,17 +18,20 @@ namespace BudgetBounder.Api.Controllers
         private readonly BudgetBounderDbContext _context;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
+        private readonly ICurrentUserService _currentUser;
 
-        public MissionsController(BudgetBounderDbContext context, IHttpClientFactory httpClientFactory, IConfiguration configuration)
+        public MissionsController(BudgetBounderDbContext context, IHttpClientFactory httpClientFactory, IConfiguration configuration, ICurrentUserService currentUser)
         {
             _context = context;
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
+            _currentUser = currentUser;
         }
 
         [HttpGet("user/{userId}")]
         public ActionResult<List<Mission>> GetUserMissions(int userId)
         {
+            if (_currentUser.UserId != userId && !_currentUser.IsAdmin) return Forbid();
             StaticMissionService.GenerateStaticMissions(userId, _context);
 
             var now = DateTime.UtcNow;
@@ -40,6 +44,7 @@ namespace BudgetBounder.Api.Controllers
         [HttpPost("generate/{userId}")]
         public async Task<ActionResult<List<Mission>>> GenerateMissions(int userId)
         {
+            if (_currentUser.UserId != userId && !_currentUser.IsAdmin) return Forbid();
             var user = _context.Users.FirstOrDefault(u => u.Id == userId);
             if (user == null) return NotFound("User not found");
 
@@ -186,6 +191,7 @@ namespace BudgetBounder.Api.Controllers
         {
             var mission = _context.Missions.Find(id);
             if (mission == null) return NotFound();
+            if (_currentUser.UserId != mission.UserId && !_currentUser.IsAdmin) return Forbid();
             if (mission.IsCompleted) return BadRequest("Mission already completed");
 
             mission.IsCompleted = true;
@@ -194,8 +200,7 @@ namespace BudgetBounder.Api.Controllers
             var user = _context.Users.Find(mission.UserId);
             if (user != null)
             {
-                user.XP += mission.XPReward;
-                user.Level = LevelService.CalculateLevel(user.XP);
+                ProgressionService.AwardXp(user, mission.XPReward);
             }
 
             _context.SaveChanges();
