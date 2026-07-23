@@ -35,10 +35,14 @@ namespace BudgetBounder.Api.Controllers
         [AllowAnonymous]
         public ActionResult Register(RegisterDto dto)
         {
+            var normalizedEmail = dto.Email.Trim().ToLowerInvariant();
+            if (_context.Users.Any(user => (user.Email ?? "").ToLower() == normalizedEmail))
+                return Conflict(new { message = "An account with this email already exists." });
+
             var user = new User
             {
-                FullName = dto.FullName,
-                Email = dto.Email,
+                FullName = dto.FullName.Trim(),
+                Email = normalizedEmail,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
                 Role = UserRoles.User
             };

@@ -273,8 +273,7 @@ namespace BudgetBounder.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Email")
-                        .IsUnique();
+                    b.HasIndex("Email");
 
                     b.ToTable("Users");
                 });

@@ -1,9 +1,14 @@
 import { create } from 'axios';
+import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
+import { resolveApiUrl } from './apiUrl';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL
-  ?? (Platform.OS === 'android' ? 'http://10.0.2.2:5292/api' : 'http://localhost:5292/api');
+export const API_URL = resolveApiUrl(
+  Platform.OS,
+  process.env.EXPO_PUBLIC_API_URL,
+  Constants.expoConfig?.hostUri,
+);
 
 const api = create({
   baseURL: API_URL,

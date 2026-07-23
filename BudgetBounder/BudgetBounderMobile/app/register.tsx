@@ -2,6 +2,7 @@ import { useAuth } from '@/src/auth/AuthProvider';
 import { PrimaryButton, Screen } from '@/src/components/BbUi';
 import { bb } from '@/src/theme/tokens';
 import { Link, type Href } from 'expo-router';
+import { isAxiosError } from 'axios';
 import { useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 
@@ -15,7 +16,15 @@ export default function RegisterScreen() {
   async function submit() {
     setSubmitting(true); setError('');
     try { await register(fullName.trim(), email.trim(), password); }
-    catch { setError('That account could not be created. Check each field and try again.'); }
+    catch (reason) {
+      if (isAxiosError(reason) && !reason.response) {
+        setError('Cannot reach BudgetBounder. Keep this iPhone and the API computer on the same network.');
+      } else if (isAxiosError(reason) && reason.response?.status === 409) {
+        setError('An account with this email already exists.');
+      } else {
+        setError('That account could not be created. Check each field and try again.');
+      }
+    }
     finally { setSubmitting(false); }
   }
   return <Screen><View style={styles.form}>

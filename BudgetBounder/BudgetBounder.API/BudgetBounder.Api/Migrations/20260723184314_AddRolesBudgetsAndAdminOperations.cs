@@ -121,8 +121,7 @@ namespace BudgetBounder.Api.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Users_Email",
                 table: "Users",
-                column: "Email",
-                unique: true);
+                column: "Email");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Transactions_UserId_Date",

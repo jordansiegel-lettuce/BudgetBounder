@@ -26,8 +26,7 @@ namespace BudgetBounder.Api.Data
                 .IsUnique();
 
             modelBuilder.Entity<User>()
-                .HasIndex(u => u.Email)
-                .IsUnique();
+                .HasIndex(u => u.Email);
 
             modelBuilder.Entity<MonthlyBudget>()
                 .HasIndex(b => new { b.UserId, b.Month })
