@@ -1,29 +1,16 @@
-import { Link } from 'expo-router';
-import { StyleSheet } from 'react-native';
+import { PixelLabel, PrimaryButton, Screen } from '@/src/components/BbUi';
+import api from '@/src/services/api';
+import { bb, formatIls } from '@/src/theme/tokens';
+import { router } from 'expo-router';
+import { useState } from 'react';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-
-export default function ModalScreen() {
-  return (
-    <ThemedView style={styles.container}>
-      <ThemedText type="title">This is a modal</ThemedText>
-      <Link href="/" dismissTo style={styles.link}>
-        <ThemedText type="link">Go to home screen</ThemedText>
-      </Link>
-    </ThemedView>
-  );
+const categories=['Food','Transport','Shopping','Health','Housing','Other'];
+export default function AddTransactionModal(){
+ const[amount,setAmount]=useState('');const[title,setTitle]=useState('');const[category,setCategory]=useState('Food');const[type,setType]=useState<'Expense'|'Income'>('Expense');const[error,setError]=useState('');const[saving,setSaving]=useState(false);
+ async function save(){const value=Number(amount);if(!value||value<=0){setError('Enter an amount greater than zero.');return}setSaving(true);setError('');try{await api.post('/transactions',{amount:value,title:title.trim()||type,category,type,date:new Date().toISOString()});router.back()}catch{setError('The transaction was not saved. Try again.')}finally{setSaving(false)}}
+ return <Screen><PixelLabel tone={type==='Expense'?bb.colors.coral:bb.colors.emerald}>QUICK ENTRY</PixelLabel><Text style={s.title}>Add transaction</Text><View style={s.toggle}><Pressable onPress={()=>setType('Expense')} style={[s.toggleItem,type==='Expense'&&s.active]}><Text style={s.toggleText}>Expense</Text></Pressable><Pressable onPress={()=>setType('Income')} style={[s.toggleItem,type==='Income'&&s.active]}><Text style={s.toggleText}>Income</Text></Pressable></View>
+ <Text style={s.amountPreview}>{formatIls(Number(amount)||0)}</Text><TextInput accessibilityLabel="Amount" keyboardType="decimal-pad" value={amount} onChangeText={setAmount} placeholder="0.00" placeholderTextColor={bb.colors.muted} style={s.input}/><TextInput accessibilityLabel="Merchant or description" value={title} onChangeText={setTitle} placeholder="Merchant or description" placeholderTextColor={bb.colors.muted} style={s.input}/>
+ <PixelLabel tone={bb.colors.cyan}>CATEGORY</PixelLabel><View style={s.categories}>{categories.map(c=><Pressable key={c} onPress={()=>setCategory(c)} style={[s.chip,category===c&&s.chipActive]}><Text style={[s.chipText,category===c&&s.chipTextActive]}>{c}</Text></Pressable>)}</View>{error?<Text style={s.error}>{error}</Text>:null}<PrimaryButton loading={saving} onPress={save}>SAVE & EARN 10 XP</PrimaryButton></Screen>
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  link: {
-    marginTop: 15,
-    paddingVertical: 15,
-  },
-});
+const s=StyleSheet.create({title:{color:bb.colors.text,fontSize:28,fontWeight:'800'},toggle:{flexDirection:'row',backgroundColor:bb.colors.raised,borderRadius:14,padding:4},toggleItem:{flex:1,minHeight:42,alignItems:'center',justifyContent:'center',borderRadius:11},active:{backgroundColor:bb.colors.surface,borderWidth:1,borderColor:bb.colors.emerald},toggleText:{color:bb.colors.text,fontWeight:'700'},amountPreview:{color:bb.colors.text,fontSize:40,fontWeight:'900',textAlign:'center',marginVertical:10},input:{minHeight:52,color:bb.colors.text,backgroundColor:bb.colors.raised,borderWidth:1,borderColor:bb.colors.border,borderRadius:14,paddingHorizontal:15},categories:{flexDirection:'row',flexWrap:'wrap',gap:8},chip:{paddingHorizontal:12,paddingVertical:10,borderRadius:999,borderWidth:1,borderColor:bb.colors.border,backgroundColor:bb.colors.surface},chipActive:{borderColor:bb.colors.cyan,backgroundColor:bb.colors.raised},chipText:{color:bb.colors.muted},chipTextActive:{color:bb.colors.cyan},error:{color:bb.colors.coral}})

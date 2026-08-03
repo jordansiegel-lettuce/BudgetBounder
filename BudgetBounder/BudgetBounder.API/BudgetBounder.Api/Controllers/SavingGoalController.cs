@@ -4,6 +4,7 @@ using BudgetBounder.Api.Models;
 using BudgetBounder.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using BudgetBounder.Api.Authorization;
 
 namespace BudgetBounder.Api.Controllers
 {
@@ -13,13 +14,16 @@ namespace BudgetBounder.Api.Controllers
     public class SavingGoalsController : ControllerBase
     {
         private readonly BudgetBounderDbContext _context;
+        private readonly ICurrentUserService _currentUser;
 
-        public SavingGoalsController(BudgetBounderDbContext context)
+        public SavingGoalsController(BudgetBounderDbContext context, ICurrentUserService currentUser)
         {
             _context = context;
+            _currentUser = currentUser;
         }
 
         [HttpGet]
+        [Authorize(Policy = "AdminOnly")]
         public ActionResult<List<SavingGoal>> GetSavingGoals()
         {
             return _context.SavingGoals.ToList();
@@ -28,6 +32,9 @@ namespace BudgetBounder.Api.Controllers
         [HttpPost]
         public ActionResult<SavingGoal> CreateSavingGoal(SavingGoal goal)
         {
+            if (_currentUser.UserId is not int userId) return Unauthorized();
+            goal.UserId = userId;
+            if (goal.TargetAmount <= 0 || goal.Deadline <= DateTime.UtcNow) return BadRequest("A positive target and future deadline are required.");
             _context.SavingGoals.Add(goal);
             _context.SaveChanges();
             return goal;
@@ -36,6 +43,7 @@ namespace BudgetBounder.Api.Controllers
         [HttpGet("user/{userId}")]
         public ActionResult<List<SavingGoal>> GetUserGoals(int userId)
         {
+            if (_currentUser.UserId != userId && !_currentUser.IsAdmin) return Forbid();
             var userSavingGoals = _context.SavingGoals
                 .Where(t => t.UserId == userId)
                 .ToList();
@@ -50,6 +58,7 @@ namespace BudgetBounder.Api.Controllers
             {
                 return NotFound();
             }
+            if (_currentUser.UserId != goal.UserId && !_currentUser.IsAdmin) return Forbid();
 
             if (amountToAdd <= 0)
             {
@@ -71,8 +80,7 @@ namespace BudgetBounder.Api.Controllers
 
                 if (user != null)
                 {
-                    user.XP += 100;
-                    user.Level = LevelService.CalculateLevel(user.XP);
+                    ProgressionService.AwardXp(user, 100);
                 }
             }
 
@@ -95,8 +103,7 @@ namespace BudgetBounder.Api.Controllers
                     var missionUser = _context.Users.Find(goal.UserId);
                     if (missionUser != null)
                     {
-                        missionUser.XP += savingMission.XPReward;
-                        missionUser.Level = LevelService.CalculateLevel(missionUser.XP);
+                        ProgressionService.AwardXp(missionUser, savingMission.XPReward);
                     }
                 }
             }
