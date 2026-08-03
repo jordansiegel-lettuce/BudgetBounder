@@ -1,0 +1,18 @@
+- main [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]: BBADMIN
+    - heading "Control the system. Protect the player." [level=1] [ref=e6]: Control the system.Protect the player.
+    - paragraph [ref=e7]: Secure operations for users, healthy missions, rewards and platform integrity.
+  - generic [ref=e8]:
+    - text: AUTHORIZED OPERATORS
+    - heading "Secure admin access" [level=2] [ref=e9]
+    - paragraph [ref=e10]: Use an administrator account issued by BudgetBounder.
+    - generic [ref=e11]:
+      - generic [ref=e12]:
+        - generic [ref=e13]: Administrator email
+        - textbox "admin@budgetbounder.app" [ref=e14]
+      - generic [ref=e15]:
+        - generic [ref=e16]: Password
+        - textbox "••••••••••••" [ref=e17]
+      - button "ENTER OPERATIONS" [ref=e18] [cursor=pointer]
+    - paragraph [ref=e19]: Protected by role-based API authorization and audit logging.
