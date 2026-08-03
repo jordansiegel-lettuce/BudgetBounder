@@ -1,148 +1,89 @@
-import { ThemedText } from '@/components/themed-text';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { Card, HeroPlate, Pill, ProgressBar, ScreenScaffold, Section } from '@/src/components/ScreenScaffold';
-import { StyleSheet, View } from 'react-native';
+import { useAuth } from '@/src/auth/AuthProvider';
+import { Card, PixelLabel, PrimaryButton, Progress, Screen, StatePanel } from '@/src/components/BbUi';
+import api from '@/src/services/api';
+import { bb, formatIls } from '@/src/theme/tokens';
+import type { DashboardResponse } from '@/src/types/api';
+import { router, type Href } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
 export default function HomeScreen() {
-  const colorScheme = useColorScheme() ?? 'light';
-  const palette = Colors[colorScheme];
+  const { user } = useAuth();
+  const [data, setData] = useState<DashboardResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
+  const load = useCallback(async () => {
+    setError('');
+    try {
+      const response = await api.get<DashboardResponse>('/dashboard/me');
+      setData(response.data);
+    } catch {
+      setError('Your dashboard could not be loaded. Your data is safe.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+  useEffect(() => { void load(); }, [load]);
+
+  if (loading) return <View style={styles.center}><ActivityIndicator color={bb.colors.emerald} size="large" /><Text style={styles.muted}>Preparing your next move…</Text></View>;
+  if (error || !data) return <Screen><StatePanel title="Connection interrupted" message={error} action={<PrimaryButton onPress={load}>TRY AGAIN</PrimaryButton>} /></Screen>;
+
+  const xpIntoLevel = data.user.xp % 500;
   return (
-    <ScreenScaffold eyebrow="Player HUD" title="Base Camp">
-      <HeroPlate title="Budget Bounder" subtitle="Spend smart. Clear quests. Unlock the next stage.">
-        <View style={styles.heroTopRow}>
-          <View>
-            <ThemedText style={styles.label}>Coins left this week</ThemedText>
-            <ThemedText style={[styles.heroAmount, { color: palette.surface }]}>$426.80</ThemedText>
-          </View>
-          <Pill label="Lv 7" tone="success" />
+    <Screen>
+      <View style={styles.topRow}>
+        <View style={styles.flex}>
+          <Text style={styles.title}>GOOD MORNING, {(data.user.fullName || user?.fullName || 'PLAYER').split(' ')[0].toUpperCase()}</Text>
+          <Text style={styles.muted}>Financial health is steady this month.</Text>
         </View>
-        <ProgressBar progress={0.68} color={palette.accent} />
-        <View style={styles.heroBottomRow}>
-          <ThemedText style={styles.heroMeta}>$213.20 spent</ThemedText>
-          <ThemedText style={styles.heroMeta}>680 / 1,000 XP</ThemedText>
-        </View>
-      </HeroPlate>
-
-      <View style={styles.statGrid}>
-        <StatCard label="Vault" value="$1,240" detail="+$90 this month" tone={palette.success} />
-        <StatCard label="Combo" value="12 days" detail="3 quests ready" tone={palette.accent} />
+        <View style={styles.level}><PixelLabel>LV {data.user.level} · ✦ {Math.round(data.user.xp)}</PixelLabel></View>
       </View>
 
-      <Section title="Next Quest">
-        <Card>
-          <View style={styles.rowBetween}>
-            <View style={styles.flex}>
-              <ThemedText type="defaultSemiBold">Defeat the dining spike</ThemedText>
-              <ThemedText style={[styles.body, { color: palette.mutedText }]}>
-                Food spend is near the danger zone. Log one decision today to keep the combo alive.
-              </ThemedText>
-            </View>
-            <Pill label="+35 XP" />
-          </View>
-        </Card>
-      </Section>
+      <Card accent={bb.colors.emerald}>
+        <View style={styles.summaryRow}><View style={styles.icon}><Text style={styles.iconText}>✦</Text></View><View style={styles.flex}>
+          <Text style={styles.amount}>{formatIls(data.finance.remainingBudget)} remaining</Text>
+          <Progress value={data.finance.budget ? data.finance.remainingBudget / data.finance.budget : 0} />
+          <Text style={styles.muted}>{formatIls(data.finance.spent)} spent this month</Text>
+        </View></View>
+      </Card>
 
-      <Section title="Battle Log">
-        {[
-          ['Coffee run', 'Food and drinks loot spent', '-$5.40'],
-          ['Emergency fund', 'Vault deposit', '+$50.00'],
-          ['Weekly quest', 'Transport budget cleared', '+80 XP'],
-        ].map(([title, detail, amount]) => (
-          <Card key={title} style={styles.compactCard}>
-            <View style={styles.rowBetween}>
-              <View style={styles.flex}>
-                <ThemedText type="defaultSemiBold">{title}</ThemedText>
-                <ThemedText style={[styles.caption, { color: palette.mutedText }]}>{detail}</ThemedText>
-              </View>
-              <ThemedText type="defaultSemiBold">{amount}</ThemedText>
-            </View>
-          </Card>
-        ))}
-      </Section>
-    </ScreenScaffold>
-  );
-}
+      {data.mission ? <Card accent={bb.colors.gold}>
+        <PixelLabel tone={bb.colors.gold}>TODAY&apos;S MISSION · +{data.mission.xpReward} XP</PixelLabel>
+        <Text style={styles.cardTitle}>{data.mission.title}</Text>
+        <Text style={styles.muted}>{data.mission.description}</Text>
+        <Progress value={data.mission.targetValue ? data.mission.currentProgress / data.mission.targetValue : 0} tone={bb.colors.gold} />
+        <PrimaryButton onPress={() => router.push('/(tabs)/missions' as Href)}>VIEW MISSION</PrimaryButton>
+      </Card> : <StatePanel title="Mission board clear" message="New personalized missions will appear here." />}
 
-function StatCard({ label, value, detail, tone }: { label: string; value: string; detail: string; tone: string }) {
-  const colorScheme = useColorScheme() ?? 'light';
-  const palette = Colors[colorScheme];
+      {data.goal ? <Card>
+        <PixelLabel tone={bb.colors.cyan}>SAVINGS VAULT</PixelLabel>
+        <Text style={styles.cardTitle}>{data.goal.title}</Text>
+        <Text style={styles.amount}>{formatIls(data.goal.currentAmount)} / {formatIls(data.goal.targetAmount)}</Text>
+        <Progress value={data.goal.targetAmount ? data.goal.currentAmount / data.goal.targetAmount : 0} tone={bb.colors.cyan} />
+        <PrimaryButton onPress={() => router.push('/(tabs)/goals' as Href)}>VIEW DETAILS</PrimaryButton>
+      </Card> : <StatePanel title="No active vault" message="Create a savings goal to start filling your first vault." />}
 
-  return (
-    <Card style={styles.statCard}>
-      <ThemedText style={[styles.label, { color: palette.mutedText }]}>{label}</ThemedText>
-      <ThemedText type="subtitle" style={styles.statValue}>
-        {value}
-      </ThemedText>
-      <ThemedText style={[styles.caption, { color: tone }]}>{detail}</ThemedText>
-    </Card>
+      <Card accent={bb.colors.violet}>
+        <PixelLabel tone={bb.colors.violet}>✧ NOVA INSIGHT</PixelLabel>
+        <Text style={styles.muted}>Your next recommendation will use your real budget, goals, and recent activity without judgment.</Text>
+      </Card>
+
+      <Card><PixelLabel tone={bb.colors.gold}>PROGRESSION</PixelLabel><Text style={styles.cardTitle}>{data.user.currentStreak} day streak</Text><Progress value={xpIntoLevel / 500} tone={bb.colors.gold} /><Text style={styles.muted}>{Math.round(xpIntoLevel)} / 500 XP toward the next level</Text></Card>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  heroTopRow: {
-    alignItems: 'flex-start',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 16,
-  },
-  heroAmount: {
-    fontSize: 38,
-    fontWeight: '900',
-    lineHeight: 44,
-    textShadowColor: '#21242e',
-    textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 0,
-  },
-  heroBottomRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  statGrid: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  statCard: {
-    flex: 1,
-  },
-  statValue: {
-    fontSize: 21,
-  },
-  label: {
-    color: '#21242e',
-    fontSize: 11,
-    fontWeight: '900',
-    letterSpacing: 0.5,
-    lineHeight: 14,
-    textTransform: 'uppercase',
-  },
-  caption: {
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  body: {
-    fontSize: 12,
-    lineHeight: 17,
-    marginTop: 4,
-  },
-  heroMeta: {
-    color: '#21242e',
-    fontSize: 11,
-    fontWeight: '900',
-    lineHeight: 14,
-  },
-  rowBetween: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  compactCard: {
-    paddingVertical: 14,
-  },
-  flex: {
-    flex: 1,
-  },
+  center: { flex: 1, backgroundColor: bb.colors.canvas, alignItems: 'center', justifyContent: 'center', gap: 16, padding: 24 },
+  topRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+  flex: { flex: 1, gap: 10 },
+  title: { color: bb.colors.emerald, fontFamily: 'monospace', fontWeight: '900', fontSize: 20, lineHeight: 28 },
+  muted: { color: bb.colors.muted, fontSize: 13, lineHeight: 20 },
+  level: { paddingHorizontal: 12, paddingVertical: 9, backgroundColor: bb.colors.raised, borderColor: bb.colors.emerald, borderWidth: 1, borderRadius: bb.radius.sm },
+  summaryRow: { flexDirection: 'row', gap: 14, alignItems: 'center' },
+  icon: { width: 54, height: 54, borderRadius: bb.radius.md, borderWidth: 1, borderColor: bb.colors.emerald, alignItems: 'center', justifyContent: 'center', backgroundColor: bb.colors.raised },
+  iconText: { color: bb.colors.emerald, fontSize: 26 },
+  amount: { color: bb.colors.text, fontWeight: '800', fontSize: 17 },
+  cardTitle: { color: bb.colors.text, fontWeight: '800', fontSize: 19 },
 });

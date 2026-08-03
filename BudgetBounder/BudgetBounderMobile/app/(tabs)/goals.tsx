@@ -1,77 +1,16 @@
-import { StyleSheet, View } from 'react-native';
-
-import { ThemedText } from '@/components/themed-text';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { Card, Pill, ProgressBar, ScreenScaffold, Section } from '@/src/components/ScreenScaffold';
-
-const goals = [
-  { name: 'Emergency Fund', saved: 1240, target: 2000, reward: '+100 XP' },
-  { name: 'Graduation Demo Kit', saved: 310, target: 650, reward: '+60 XP' },
-  { name: 'Weekend Buffer', saved: 180, target: 250, reward: '+40 XP' },
-];
-
-export default function GoalsScreen() {
-  const colorScheme = useColorScheme() ?? 'light';
-  const palette = Colors[colorScheme];
-
-  return (
-    <ScreenScaffold eyebrow="Vault Room" title="Save Quest" action={<Pill label="Go" />}>
-      <Card style={{ backgroundColor: palette.ice }}>
-        <ThemedText style={[styles.caption, { color: palette.mutedText }]}>Gold stored</ThemedText>
-        <ThemedText style={styles.total}>$1,730</ThemedText>
-        <ThemedText style={[styles.caption, { color: palette.mutedText }]}>
-          XP reward triggers once when a chest reaches 100%.
-        </ThemedText>
-      </Card>
-
-      <Section title="Open Chests">
-        {goals.map((goal) => {
-          const progress = goal.saved / goal.target;
-
-          return (
-            <Card key={goal.name}>
-              <View style={styles.rowBetween}>
-                <View style={styles.flex}>
-                  <ThemedText type="defaultSemiBold">{goal.name}</ThemedText>
-                  <ThemedText style={[styles.caption, { color: palette.mutedText }]}>
-                    ${goal.saved} of ${goal.target}
-                  </ThemedText>
-                </View>
-                <Pill label={goal.reward} />
-              </View>
-              <ProgressBar progress={progress} />
-              <ThemedText style={[styles.caption, { color: palette.mutedText }]}>
-                {Math.round(progress * 100)}% charged
-              </ThemedText>
-            </Card>
-          );
-        })}
-      </Section>
-    </ScreenScaffold>
-  );
+import { useAuth } from '@/src/auth/AuthProvider';
+import { Card, PixelLabel, Progress, Screen, StatePanel } from '@/src/components/BbUi';
+import api from '@/src/services/api';
+import { bb, formatIls } from '@/src/theme/tokens';
+import { useEffect, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+type Goal={id:number;title:string;targetAmount:number;currentAmount:number;deadline:string;isCompleted:boolean};
+export default function GoalsScreen(){
+ const{user}=useAuth();const[items,setItems]=useState<Goal[]>([]);const[error,setError]=useState('');
+ useEffect(()=>{if(user)api.get<Goal[]>(`/savinggoals/user/${user.id}`).then(r=>setItems(r.data)).catch(()=>setError('Savings goals could not be loaded.'))},[user]);
+ const total=items.reduce((sum,g)=>sum+g.currentAmount,0);
+ return <Screen><PixelLabel tone={bb.colors.cyan}>SAVINGS VAULTS</PixelLabel><Text style={s.title}>Goals</Text><Card accent={bb.colors.gold}><Text style={s.muted}>Total protected</Text><Text style={s.total}>{formatIls(total)}</Text><Text style={s.muted}>Saving progress earns XP only when healthy milestones are completed.</Text></Card>
+ {error?<StatePanel title="VAULT ERROR" message={error}/>:null}{!error&&items.length===0?<StatePanel title="NO ACTIVE VAULTS" message="Create a goal from the full goal quest flow in the next product slice."/>:null}
+ {items.map(g=><Card key={g.id} accent={g.isCompleted?bb.colors.emerald:undefined}><View style={s.row}><Text style={s.cardTitle}>{g.title}</Text><Text style={s.reward}>{g.isCompleted?'COMPLETE':new Date(g.deadline).toLocaleDateString('he-IL')}</Text></View><Text style={s.muted}>{formatIls(g.currentAmount)} of {formatIls(g.targetAmount)}</Text><Progress value={g.targetAmount?g.currentAmount/g.targetAmount:0} tone={g.isCompleted?bb.colors.emerald:bb.colors.cyan}/></Card>)}</Screen>
 }
-
-const styles = StyleSheet.create({
-  total: {
-    fontSize: 38,
-    fontWeight: '900',
-    lineHeight: 44,
-    textShadowColor: '#ffffff',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 0,
-  },
-  rowBetween: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  caption: {
-    fontSize: 12,
-    lineHeight: 16,
-  },
-  flex: {
-    flex: 1,
-  },
-});
+const s=StyleSheet.create({title:{color:bb.colors.text,fontSize:28,fontWeight:'800'},total:{color:bb.colors.gold,fontSize:34,fontWeight:'900'},muted:{color:bb.colors.muted,fontSize:13,lineHeight:19},row:{flexDirection:'row',justifyContent:'space-between',gap:10},cardTitle:{color:bb.colors.text,fontSize:17,fontWeight:'800',flex:1},reward:{color:bb.colors.gold,fontFamily:'monospace',fontSize:10}})

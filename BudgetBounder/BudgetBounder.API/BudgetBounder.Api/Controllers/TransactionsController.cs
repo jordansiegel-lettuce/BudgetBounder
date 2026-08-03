@@ -1,6 +1,7 @@
 using BudgetBounder.Api.Data;
 using BudgetBounder.Api.Models;
 using BudgetBounder.Api.Services;
+using BudgetBounder.Api.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
@@ -14,13 +15,16 @@ namespace BudgetBounder.Api.Controllers
     public class TransactionsController : ControllerBase
     {
         private readonly BudgetBounderDbContext _context;
+        private readonly ICurrentUserService _currentUser;
 
-        public TransactionsController(BudgetBounderDbContext context)
+        public TransactionsController(BudgetBounderDbContext context, ICurrentUserService currentUser)
         {
             _context = context;
+            _currentUser = currentUser;
         }
 
         [HttpGet]
+        [Authorize(Policy = "AdminOnly")]
         public ActionResult<List<Transaction>> GetTransactions()
         {
             return _context.Transactions.ToList();
@@ -29,8 +33,11 @@ namespace BudgetBounder.Api.Controllers
         [HttpPost]
         public ActionResult<Transaction> ReceiveTransaction(Transaction transaction)
         {
+            if (_currentUser.UserId is not int userId) return Unauthorized();
+            transaction.UserId = userId;
+            if (transaction.Amount <= 0) return BadRequest("Amount must be greater than zero.");
             _context.Transactions.Add(transaction);
-            AutoCompleteMission(transaction.UserId, transaction.Type);
+            AutoCompleteMission(userId, transaction.Type);
             _context.SaveChanges();
             return transaction;
         }
@@ -38,6 +45,7 @@ namespace BudgetBounder.Api.Controllers
         [HttpGet("user/{userId}")]
         public ActionResult<List<Transaction>> GetUserTransactions(int userId)
         {
+            if (_currentUser.UserId != userId && !_currentUser.IsAdmin) return Forbid();
             var userTransactions = _context.Transactions
                 .Where(t => t.UserId == userId)
                 .ToList();
@@ -49,6 +57,7 @@ namespace BudgetBounder.Api.Controllers
         {
             var transaction = _context.Transactions.Find(id);
             if (transaction == null) return NotFound();
+            if (_currentUser.UserId != transaction.UserId && !_currentUser.IsAdmin) return Forbid();
             _context.Transactions.Remove(transaction);
             _context.SaveChanges();
             return NoContent();
@@ -57,7 +66,8 @@ namespace BudgetBounder.Api.Controllers
         [HttpPost("complete")]
         public ActionResult<object> CompleteTransaction([FromBody] CompleteTransactionRequest request)
         {
-            var user = _context.Users.FirstOrDefault(u => u.Id == request.UserId);
+            if (_currentUser.UserId is not int userId) return Unauthorized();
+            var user = _context.Users.FirstOrDefault(u => u.Id == userId);
             if (user == null) return NotFound("User not found");
 
             var transaction = new Transaction
@@ -67,15 +77,15 @@ namespace BudgetBounder.Api.Controllers
                 Type = TransactionType.Expense,
                 Category = request.Category,
                 Date = DateTime.UtcNow,
-                UserId = request.UserId
+                UserId = userId
             };
 
             _context.Transactions.Add(transaction);
 
-            user.XP += 10;
-            user.Level = LevelService.CalculateLevel(user.XP);
+            ProgressionService.AwardXp(user, 10);
+            ProgressionService.UpdateStreak(user, DateOnly.FromDateTime(DateTime.UtcNow));
 
-            AutoCompleteMission(request.UserId, TransactionType.Expense);
+            AutoCompleteMission(userId, TransactionType.Expense);
 
             _context.SaveChanges();
 

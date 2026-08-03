@@ -1,116 +1,27 @@
-import { StyleSheet, View } from 'react-native';
-
-import { ThemedText } from '@/components/themed-text';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { Card, Pill, ProgressBar, ScreenScaffold, Section } from '@/src/components/ScreenScaffold';
-
-const categories = [
-  { name: 'Food', spent: 214, limit: 300 },
-  { name: 'Transport', spent: 82, limit: 120 },
-  { name: 'Entertainment', spent: 96, limit: 100 },
-];
-
-const transactions = [
-  ['Grocery top-up', 'Food', '$42.10'],
-  ['Bus card', 'Transport', '$18.00'],
-  ['Movie night', 'Entertainment', '$24.00'],
-  ['Pharmacy', 'Health', '$12.60'],
-];
+import { useAuth } from '@/src/auth/AuthProvider';
+import { Card, PixelLabel, PrimaryButton, Screen, StatePanel } from '@/src/components/BbUi';
+import api from '@/src/services/api';
+import { bb, formatIls } from '@/src/theme/tokens';
+import type { Transaction } from '@/src/types/api';
+import { router } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
 export default function TransactionsScreen() {
-  const colorScheme = useColorScheme() ?? 'light';
-  const palette = Colors[colorScheme];
-
-  return (
-    <ScreenScaffold eyebrow="Coin Bank" title="Spend Map" action={<Pill label="Go" />}>
-      <Section title="Threat Meters">
-        {categories.map((category) => {
-          const progress = category.spent / category.limit;
-          const isTight = progress > 0.85;
-
-          return (
-            <Card key={category.name}>
-              <View style={styles.rowBetween}>
-                <View>
-                  <ThemedText type="defaultSemiBold">{category.name} Zone</ThemedText>
-                  <ThemedText style={[styles.caption, { color: palette.mutedText }]}>
-                    ${category.spent} of ${category.limit}
-                  </ThemedText>
-                </View>
-                <Pill label={isTight ? 'Boss' : 'Clear'} tone={isTight ? 'warning' : 'success'} />
-              </View>
-              <ProgressBar progress={progress} color={isTight ? palette.warning : palette.success} />
-            </Card>
-          );
-        })}
-      </Section>
-
-      <Section title="Loot Drops">
-        {transactions.map(([name, category, amount]) => (
-          <Card key={name} style={styles.listCard}>
-            <View style={styles.rowBetween}>
-              <View style={[styles.categoryChip, { backgroundColor: palette.carbon }]}>
-                <ThemedText style={[styles.categoryText, { color: palette.chromeSoft }]}>
-                  {category.slice(0, 1)}
-                </ThemedText>
-              </View>
-              <View style={styles.flex}>
-                <ThemedText type="defaultSemiBold">{name}</ThemedText>
-                <ThemedText style={[styles.caption, { color: palette.mutedText }]}>{category}</ThemedText>
-              </View>
-              <ThemedText type="defaultSemiBold">{amount}</ThemedText>
-              <View style={[styles.arrowChip, { backgroundColor: palette.accent }]}>
-                <ThemedText style={styles.arrowText}>{'>'}</ThemedText>
-              </View>
-            </View>
-          </Card>
-        ))}
-      </Section>
-    </ScreenScaffold>
-  );
+  const { user } = useAuth();
+  const [items, setItems] = useState<Transaction[]>([]);
+  const [error, setError] = useState('');
+  useEffect(() => {
+    if (!user) return;
+    api.get<Transaction[]>(`/transactions/user/${user.id}`)
+      .then(response => setItems(response.data.sort((a,b) => b.date.localeCompare(a.date))))
+      .catch(() => setError('Activity could not be loaded.'));
+  }, [user]);
+  return <Screen>
+    <View style={styles.header}><View style={styles.flex}><PixelLabel tone={bb.colors.cyan}>FINANCE LOG</PixelLabel><Text style={styles.title}>Activity</Text><Text style={styles.muted}>Every entry strengthens your financial map.</Text></View><PrimaryButton onPress={() => router.push('/modal')}>+ ADD</PrimaryButton></View>
+    {error ? <StatePanel title="ACTIVITY ERROR" message={error} /> : null}
+    {!error && items.length === 0 ? <StatePanel title="NO TRANSACTIONS" message="Log your first expense or income to begin." action={<PrimaryButton onPress={() => router.push('/modal')}>ADD FIRST ENTRY</PrimaryButton>} /> : null}
+    {items.map(item => <Card key={item.id}><View style={styles.row}><View style={[styles.icon,{borderColor:item.type === 'Income' ? bb.colors.emerald : bb.colors.coral}]}><Text>{item.category.slice(0,1).toUpperCase()}</Text></View><View style={styles.flex}><Text style={styles.cardTitle}>{item.title}</Text><Text style={styles.muted}>{item.category} · {new Date(item.date).toLocaleDateString('he-IL')}</Text></View><Text style={[styles.amount,{color:item.type === 'Income' ? bb.colors.emerald : bb.colors.text}]}>{item.type === 'Income' ? '+' : '−'}{formatIls(item.amount)}</Text></View></Card>)}
+  </Screen>;
 }
-
-const styles = StyleSheet.create({
-  rowBetween: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  caption: {
-    fontSize: 12,
-    lineHeight: 16,
-    marginTop: 2,
-  },
-  listCard: {
-    paddingVertical: 14,
-  },
-  flex: {
-    flex: 1,
-  },
-  categoryChip: {
-    alignItems: 'center',
-    height: 24,
-    justifyContent: 'center',
-    width: 24,
-  },
-  categoryText: {
-    fontSize: 12,
-    fontWeight: '900',
-    lineHeight: 14,
-  },
-  arrowChip: {
-    alignItems: 'center',
-    borderRadius: 2,
-    height: 22,
-    justifyContent: 'center',
-    width: 22,
-  },
-  arrowText: {
-    color: '#ffffff',
-    fontSize: 22,
-    fontWeight: '900',
-    lineHeight: 22,
-  },
-});
+const styles=StyleSheet.create({header:{flexDirection:'row',gap:12,alignItems:'center'},flex:{flex:1,gap:5},title:{color:bb.colors.text,fontSize:28,fontWeight:'800'},muted:{color:bb.colors.muted,fontSize:13,lineHeight:19},row:{flexDirection:'row',alignItems:'center',gap:12},icon:{width:40,height:40,borderRadius:12,borderWidth:1,backgroundColor:bb.colors.raised,alignItems:'center',justifyContent:'center'},cardTitle:{color:bb.colors.text,fontWeight:'700',fontSize:16},amount:{fontWeight:'800',fontSize:14}})

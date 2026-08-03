@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using BudgetBounder.Api.Authorization;
 
 namespace BudgetBounder.Api.Controllers
 {
@@ -16,19 +17,22 @@ namespace BudgetBounder.Api.Controllers
         private readonly BudgetBounderDbContext _context;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
+        private readonly ICurrentUserService _currentUser;
 
-        public AiController(BudgetBounderDbContext context, IHttpClientFactory httpClientFactory, IConfiguration configuration)
+        public AiController(BudgetBounderDbContext context, IHttpClientFactory httpClientFactory, IConfiguration configuration, ICurrentUserService currentUser)
         {
             _context = context;
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
+            _currentUser = currentUser;
         }
 
         [HttpPost("chat")]
         public async Task<ActionResult<string>> Chat([FromBody] AiChatRequest request)
         {
+            if (_currentUser.UserId is not int userId) return Unauthorized();
             var transactions = _context.Transactions
-                .Where(t => t.UserId == request.UserId)
+                .Where(t => t.UserId == userId)
                 .OrderByDescending(t => t.Date)
                 .Take(20)
                 .ToList();

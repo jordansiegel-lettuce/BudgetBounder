@@ -1,14 +1,6 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
-import { jwtDecode } from "jwt-decode";
 import type { User } from "../types/User";
-
-interface JwtPayload {
-  sub: string;
-  email: string;
-  name: string;
-  level: string;
-  xp: string;
-}
+import { decodeUser } from "../auth/authToken";
 
 interface AuthContextValue {
   token: string | null;
@@ -18,21 +10,6 @@ interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
-
-function decodeUser(token: string): User | null {
-  try {
-    const payload = jwtDecode<JwtPayload>(token);
-    return {
-      id: parseInt(payload.sub, 10),
-      fullName: payload.name,
-      email: payload.email,
-      level: parseInt(payload.level, 10),
-      xp: parseFloat(payload.xp),
-    };
-  } catch {
-    return null;
-  }
-}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(
@@ -69,6 +46,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// The provider and hook intentionally share one module to keep auth state private.
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used inside AuthProvider");

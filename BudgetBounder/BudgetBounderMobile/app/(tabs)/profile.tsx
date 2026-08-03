@@ -1,81 +1,11 @@
-import { StyleSheet, View } from 'react-native';
-
-import { ThemedText } from '@/components/themed-text';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { Card, Pill, ProgressBar, ScreenScaffold, Section } from '@/src/components/ScreenScaffold';
-
-export default function ProfileScreen() {
-  const colorScheme = useColorScheme() ?? 'light';
-  const palette = Colors[colorScheme];
-
-  return (
-    <ScreenScaffold eyebrow="Player Card" title="Hero Stats">
-      <Card style={{ backgroundColor: palette.ice }}>
-        <View style={styles.profileRow}>
-          <View style={[styles.avatar, { backgroundColor: palette.surface, borderColor: palette.bevelDark }]}>
-            <ThemedText style={styles.avatarText}>J</ThemedText>
-          </View>
-          <View style={styles.flex}>
-            <ThemedText type="subtitle">Jordi</ThemedText>
-            <ThemedText style={[styles.caption, { color: palette.mutedText }]}>
-              Level 7 coin strategist
-            </ThemedText>
-          </View>
-          <Pill label="680 XP" />
-        </View>
-        <ProgressBar progress={0.68} color={palette.accent} />
-      </Card>
-
-      <Section title="Level Unlocks">
-        {[
-          ['Arcade gates', 'Unity levels unlock with your BudgetBounder level.'],
-          ['Badge shelf', 'Pixel badges for combos, vault milestones, and smart spending.'],
-          ['Live XP sync', 'XP and level refresh from the user endpoint after rewards.'],
-        ].map(([title, description]) => (
-          <Card key={title} style={styles.listCard}>
-            <ThemedText type="defaultSemiBold">{title}</ThemedText>
-            <ThemedText style={[styles.body, { color: palette.mutedText }]}>{description}</ThemedText>
-          </Card>
-        ))}
-      </Section>
-    </ScreenScaffold>
-  );
+import { useAuth } from '@/src/auth/AuthProvider';
+import { Card, PixelLabel, PrimaryButton, Progress, Screen } from '@/src/components/BbUi';
+import { bb } from '@/src/theme/tokens';
+import { StyleSheet, Text, View } from 'react-native';
+export default function ProfileScreen(){
+ const{user,signOut}=useAuth();if(!user)return null;const xp=user.xp%500;
+ return <Screen><PixelLabel tone={bb.colors.emerald}>PLAYER CARD</PixelLabel><Text style={s.title}>Profile</Text><Card accent={bb.colors.emerald}><View style={s.row}><View style={s.avatar}><Text style={s.avatarText}>{user.fullName.slice(0,1).toUpperCase()}</Text></View><View style={s.flex}><Text style={s.name}>{user.fullName}</Text><Text style={s.muted}>Level {user.level} · Expense Ranger</Text></View><Text style={s.xp}>{Math.round(user.xp)} XP</Text></View><Progress value={xp/500}/><Text style={s.muted}>{Math.round(xp)} / 500 XP to next level</Text></Card>
+ <View style={s.grid}><Card style={s.stat}><PixelLabel tone={bb.colors.gold}>STREAK</PixelLabel><Text style={s.number}>{user.currentStreak}</Text><Text style={s.muted}>days</Text></Card><Card style={s.stat}><PixelLabel tone={bb.colors.violet}>ROLE</PixelLabel><Text style={s.number}>●</Text><Text style={s.muted}>Player</Text></Card></View>
+ <Card><PixelLabel tone={bb.colors.cyan}>ACCOUNT & PRIVACY</PixelLabel><Text style={s.muted}>{user.email}</Text><Text style={s.muted}>Security · Notifications · AI data permissions · Accessibility</Text></Card><PrimaryButton onPress={signOut}>SIGN OUT</PrimaryButton></Screen>
 }
-
-const styles = StyleSheet.create({
-  profileRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 14,
-  },
-  avatar: {
-    alignItems: 'center',
-    borderRadius: 2,
-    borderWidth: 2,
-    height: 54,
-    justifyContent: 'center',
-    width: 54,
-  },
-  avatarText: {
-    fontSize: 24,
-    fontWeight: '900',
-    lineHeight: 28,
-  },
-  caption: {
-    fontSize: 12,
-    lineHeight: 16,
-    marginTop: 2,
-  },
-  body: {
-    fontSize: 12,
-    lineHeight: 17,
-    marginTop: 4,
-  },
-  listCard: {
-    paddingVertical: 14,
-  },
-  flex: {
-    flex: 1,
-  },
-});
+const s=StyleSheet.create({title:{color:bb.colors.text,fontSize:28,fontWeight:'800'},row:{flexDirection:'row',alignItems:'center',gap:12},avatar:{width:56,height:56,borderRadius:16,backgroundColor:bb.colors.raised,borderWidth:1,borderColor:bb.colors.emerald,alignItems:'center',justifyContent:'center'},avatarText:{color:bb.colors.emerald,fontSize:24,fontWeight:'900'},flex:{flex:1},name:{color:bb.colors.text,fontSize:20,fontWeight:'800'},muted:{color:bb.colors.muted,fontSize:13,lineHeight:20},xp:{color:bb.colors.gold,fontFamily:'monospace',fontSize:11,fontWeight:'800'},grid:{flexDirection:'row',gap:12},stat:{flex:1},number:{color:bb.colors.text,fontSize:30,fontWeight:'900'}})

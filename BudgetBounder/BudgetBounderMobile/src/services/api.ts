@@ -1,14 +1,21 @@
-import axios from 'axios';
+import { create } from 'axios';
+import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
+import { resolveApiUrl } from './apiUrl';
 
-const API_URL = 'http://localhost:5292/api';
+export const API_URL = resolveApiUrl(
+  Platform.OS,
+  process.env.EXPO_PUBLIC_API_URL,
+  Constants.expoConfig?.hostUri,
+);
 
-const api = axios.create({
+const api = create({
   baseURL: API_URL,
 });
 
 api.interceptors.request.use(async (config) => {
-  const token = await SecureStore.getItemAsync('token');
+  const token = await SecureStore.getItemAsync('budgetbounder.token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
