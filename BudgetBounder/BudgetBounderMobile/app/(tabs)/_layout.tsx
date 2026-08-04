@@ -9,20 +9,23 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: bb.colors.emerald,
+        tabBarActiveTintColor: bb.colors.navGold,
         tabBarInactiveTintColor: bb.colors.muted,
         tabBarStyle: {
-          backgroundColor: bb.colors.surface,
-          borderTopColor: bb.colors.border,
+          backgroundColor: bb.colors.carbon,
+          borderTopColor: bb.colors.bevelLight,
           borderTopWidth: 1,
-          height: 78,
-          paddingBottom: 12,
-          paddingTop: 8,
+          borderTopLeftRadius: bb.radius.xl,
+          borderTopRightRadius: bb.radius.xl,
+          height: 72,
+          paddingBottom: 9,
+          paddingTop: 7,
         },
         tabBarLabelStyle: {
           fontSize: 11,
-          fontFamily: 'monospace',
-          fontWeight: '800',
+          fontFamily: bb.fonts.body,
+          fontWeight: '900',
+          letterSpacing: 0.4,
         },
         headerShown: false,
         tabBarButton: HapticTab,

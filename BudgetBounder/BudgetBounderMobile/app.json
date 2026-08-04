@@ -39,7 +39,22 @@
           }
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-notifications",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "BudgetBounder uses the camera only when you choose to attach a receipt.",
+          "photosPermission": "BudgetBounder lets you select a receipt image for a transaction.",
+          "microphonePermission": false
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "BudgetBounder can tag a transaction with the merchant location you choose to capture."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

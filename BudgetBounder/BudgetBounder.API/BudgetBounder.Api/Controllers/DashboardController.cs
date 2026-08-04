@@ -28,7 +28,7 @@ public class DashboardController(
         var mission = await context.Missions
             .Where(m => m.UserId == userId && !m.IsCompleted && m.ExpiresAt > DateTime.UtcNow)
             .OrderBy(m => m.ExpiresAt)
-            .Select(m => new { m.Id, m.Title, m.Description, m.XPReward, m.CurrentProgress, m.TargetValue })
+            .Select(m => new { m.Id, m.Title, m.Description, m.XPReward, m.CurrentProgress, m.TargetValue, m.ExpiresAt })
             .FirstOrDefaultAsync(cancellationToken);
         var goal = await context.SavingGoals
             .Where(g => g.UserId == userId && !g.IsCompleted)

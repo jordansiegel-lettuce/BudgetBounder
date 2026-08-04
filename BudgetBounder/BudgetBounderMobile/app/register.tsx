@@ -39,10 +39,10 @@ export default function RegisterScreen() {
   </View></Screen>;
 }
 const styles = StyleSheet.create({
-  form: { marginTop: 64, backgroundColor: bb.colors.surface, borderRadius: bb.radius.xl, borderWidth: 1, borderColor: bb.colors.border, padding: 20, gap: 14 },
-  eyebrow: { color: bb.colors.gold, fontFamily: 'monospace', fontWeight: '900', letterSpacing: 1.5 },
-  title: { color: bb.colors.text, fontSize: 27, fontWeight: '800' },
+  form: { marginTop: 8, backgroundColor: bb.colors.surface, borderRadius: bb.radius.xl, borderWidth: 2, borderTopColor: bb.colors.raised, borderLeftColor: bb.colors.raised, borderRightColor: bb.colors.border, borderBottomColor: bb.colors.border, padding: 16, gap: 12 },
+  eyebrow: { color: bb.colors.navGold, backgroundColor: bb.colors.carbon, fontFamily: bb.fonts.body, fontWeight: '900', letterSpacing: 0.5, padding: 8 },
+  title: { color: bb.colors.text, fontFamily: bb.fonts.display, fontSize: 27, fontWeight: '900', textTransform: 'uppercase' },
   copy: { color: bb.colors.muted, lineHeight: 21 },
-  input: { minHeight: 50, color: bb.colors.text, backgroundColor: bb.colors.raised, borderWidth: 1, borderColor: bb.colors.border, borderRadius: bb.radius.md, paddingHorizontal: 15 },
+  input: { minHeight: 50, color: bb.colors.text, fontFamily: bb.fonts.body, backgroundColor: bb.colors.raised, borderWidth: 2, borderTopColor: bb.colors.border, borderLeftColor: bb.colors.border, borderRightColor: bb.colors.bevelLight, borderBottomColor: bb.colors.bevelLight, borderRadius: bb.radius.sm, paddingHorizontal: 12 },
   error: { color: bb.colors.coral }, link: { color: bb.colors.cyan, textAlign: 'center', padding: 8 },
 });

@@ -16,6 +16,7 @@ namespace BudgetBounder.Api.Data
         public DbSet<Mission> Missions { get; set; }
         public DbSet<MonthlyBudget> MonthlyBudgets { get; set; }
         public DbSet<AdminAuditLog> AdminAuditLogs { get; set; }
+        public DbSet<ReminderPreferences> ReminderPreferences { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -37,6 +38,10 @@ namespace BudgetBounder.Api.Data
 
             modelBuilder.Entity<SavingGoal>()
                 .HasIndex(g => new { g.UserId, g.Deadline });
+
+            modelBuilder.Entity<ReminderPreferences>()
+                .HasIndex(p => p.UserId)
+                .IsUnique();
 
             modelBuilder.Entity<AdminAuditLog>()
                 .HasOne(a => a.AdminUser)

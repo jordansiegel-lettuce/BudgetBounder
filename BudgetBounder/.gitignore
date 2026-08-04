@@ -1,10 +1,26 @@
 
-appsettings.Development.json
+appsettings.json
 appsettings.*.json
-!appsettings.json
+!appsettings.example.json
 .env
 .env.*
 !.env.example
+
+# Secrets, certificates, signing keys, and provider credentials
+secrets.json
+credentials*.json
+service-account*.json
+google-services.json
+GoogleService-Info.plist
+*.pfx
+*.p12
+*.pem
+*.key
+*.keystore
+*.jks
+
+# Published packages may copy environment-specific configuration
+deploy/
 
 # ── .NET build output ─────────────────────────────────────────────────────────
 bin/
@@ -20,6 +36,8 @@ dist-ssr/
 *.local
 .expo/
 .expo-shared/
+.superpowers/
+output/
 
 # ── OS / editor ───────────────────────────────────────────────────────────────
 .DS_Store

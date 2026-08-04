@@ -35,8 +35,13 @@ namespace BudgetBounder.Api.Controllers
             StaticMissionService.GenerateStaticMissions(userId, _context);
 
             var now = DateTime.UtcNow;
+            var completedSince = now.Date;
             var missions = _context.Missions
-                .Where(m => m.UserId == userId && !m.IsCompleted && m.ExpiresAt > now)
+                .Where(m => m.UserId == userId &&
+                            ((!m.IsCompleted && m.ExpiresAt > now) ||
+                             (m.IsCompleted && m.CompletedAt >= completedSince)))
+                .OrderBy(m => m.IsCompleted)
+                .ThenBy(m => m.ExpiresAt)
                 .ToList();
             return Ok(missions);
         }

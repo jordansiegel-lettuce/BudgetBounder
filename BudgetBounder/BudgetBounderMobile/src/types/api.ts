@@ -27,6 +27,7 @@ export type DashboardResponse = {
     xpReward: number;
     currentProgress: number;
     targetValue: number;
+    expiresAt?: string;
   };
   goal: null | {
     id: number;
@@ -45,4 +46,8 @@ export type Transaction = {
   type: 'Income' | 'Expense';
   category: string;
   date: string;
+  receiptImageDataUrl?: string;
+  latitude?: number;
+  longitude?: number;
+  merchantAddress?: string;
 };

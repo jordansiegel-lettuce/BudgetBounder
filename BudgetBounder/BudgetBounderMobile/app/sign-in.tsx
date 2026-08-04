@@ -35,12 +35,12 @@ export default function SignInScreen() {
 
 const styles = StyleSheet.create({
   brand: { minHeight: 250, justifyContent: 'center', gap: 18 },
-  logo: { color: bb.colors.text, fontFamily: 'monospace', fontWeight: '900', fontSize: 36, lineHeight: 45 },
-  tagline: { color: bb.colors.emerald, fontFamily: 'monospace', letterSpacing: 2, fontWeight: '800' },
-  form: { backgroundColor: bb.colors.surface, borderRadius: bb.radius.xl, borderWidth: 1, borderColor: bb.colors.border, padding: 20, gap: 14 },
-  title: { color: bb.colors.text, fontSize: 26, fontWeight: '800' },
+  logo: { color: bb.colors.title, fontFamily: bb.fonts.display, fontWeight: '900', fontSize: 36, lineHeight: 40, textShadowColor: bb.colors.border, textShadowOffset: { width: 2, height: 2 }, textShadowRadius: 2 },
+  tagline: { color: bb.colors.navGold, fontFamily: bb.fonts.body, letterSpacing: 1, fontWeight: '900', backgroundColor: bb.colors.carbon, padding: 8 },
+  form: { backgroundColor: bb.colors.surface, borderRadius: bb.radius.xl, borderWidth: 2, borderTopColor: bb.colors.raised, borderLeftColor: bb.colors.raised, borderRightColor: bb.colors.border, borderBottomColor: bb.colors.border, padding: 16, gap: 12 },
+  title: { color: bb.colors.text, fontFamily: bb.fonts.display, fontSize: 26, fontWeight: '900', textTransform: 'uppercase' },
   copy: { color: bb.colors.muted, lineHeight: 21 },
-  input: { minHeight: 50, color: bb.colors.text, backgroundColor: bb.colors.raised, borderWidth: 1, borderColor: bb.colors.border, borderRadius: bb.radius.md, paddingHorizontal: 15 },
+  input: { minHeight: 50, color: bb.colors.text, fontFamily: bb.fonts.body, backgroundColor: bb.colors.raised, borderWidth: 2, borderTopColor: bb.colors.border, borderLeftColor: bb.colors.border, borderRightColor: bb.colors.bevelLight, borderBottomColor: bb.colors.bevelLight, borderRadius: bb.radius.sm, paddingHorizontal: 12 },
   error: { color: bb.colors.coral, lineHeight: 20 },
   link: { color: bb.colors.cyan, textAlign: 'center', padding: 8 },
 });

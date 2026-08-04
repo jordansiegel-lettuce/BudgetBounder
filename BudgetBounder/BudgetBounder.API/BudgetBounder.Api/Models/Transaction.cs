@@ -15,5 +15,9 @@
         public DateTime Date { get; set; }
         public User? User { get; set; }
         public int UserId { get; set; }
+        public string? ReceiptImageDataUrl { get; set; }
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
+        public string? MerchantAddress { get; set; }
     }
 }

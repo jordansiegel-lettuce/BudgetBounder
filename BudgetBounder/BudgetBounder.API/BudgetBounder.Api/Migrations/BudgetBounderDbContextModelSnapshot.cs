@@ -150,6 +150,52 @@ namespace BudgetBounder.Api.Migrations
                     b.ToTable("MonthlyBudgets");
                 });
 
+            modelBuilder.Entity("BudgetBounder.Api.Models.ReminderPreferences", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("BudgetAlertsEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("BudgetThresholdPercent")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("DailyLogEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("DailyLogHour")
+                        .HasColumnType("int");
+
+                    b.Property<int>("GoalReminderHour")
+                        .HasColumnType("int");
+
+                    b.Property<int>("GoalReminderWeekday")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("GoalRemindersEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("MissionAlertsEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("ReminderPreferences");
+                });
+
             modelBuilder.Entity("BudgetBounder.Api.Models.SavingGoal", b =>
                 {
                     b.Property<int>("Id")
@@ -201,6 +247,18 @@ namespace BudgetBounder.Api.Migrations
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
+
+                    b.Property<double?>("Latitude")
+                        .HasColumnType("float");
+
+                    b.Property<double?>("Longitude")
+                        .HasColumnType("float");
+
+                    b.Property<string>("MerchantAddress")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReceiptImageDataUrl")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
                         .IsRequired()

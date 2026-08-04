@@ -3,8 +3,9 @@ import { Card, PixelLabel, PrimaryButton, Progress, Screen, StatePanel } from '@
 import api from '@/src/services/api';
 import { bb, formatIls } from '@/src/theme/tokens';
 import type { DashboardResponse } from '@/src/types/api';
-import { router, type Href } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { getXpProgress } from '@/src/progression/xpProgress';
+import { router, type Href, useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
 export default function HomeScreen() {
@@ -24,12 +25,12 @@ export default function HomeScreen() {
       setLoading(false);
     }
   }, []);
-  useEffect(() => { void load(); }, [load]);
+  useFocusEffect(useCallback(() => { void load(); }, [load]));
 
   if (loading) return <View style={styles.center}><ActivityIndicator color={bb.colors.emerald} size="large" /><Text style={styles.muted}>Preparing your next move…</Text></View>;
   if (error || !data) return <Screen><StatePanel title="Connection interrupted" message={error} action={<PrimaryButton onPress={load}>TRY AGAIN</PrimaryButton>} /></Screen>;
 
-  const xpIntoLevel = data.user.xp % 500;
+  const xp = getXpProgress(data.user.xp);
   return (
     <Screen>
       <View style={styles.topRow}>
@@ -69,7 +70,7 @@ export default function HomeScreen() {
         <Text style={styles.muted}>Your next recommendation will use your real budget, goals, and recent activity without judgment.</Text>
       </Card>
 
-      <Card><PixelLabel tone={bb.colors.gold}>PROGRESSION</PixelLabel><Text style={styles.cardTitle}>{data.user.currentStreak} day streak</Text><Progress value={xpIntoLevel / 500} tone={bb.colors.gold} /><Text style={styles.muted}>{Math.round(xpIntoLevel)} / 500 XP toward the next level</Text></Card>
+      <Card><PixelLabel tone={bb.colors.gold}>PROGRESSION</PixelLabel><Text style={styles.cardTitle}>{Math.round(data.user.xp)} TOTAL XP · {data.user.currentStreak} DAY STREAK</Text><Progress value={xp.progress} tone={bb.colors.gold} /><Text style={styles.muted}>{xp.nextLevelAt == null ? 'Maximum level reached' : `${Math.round(xp.current)} / ${xp.required} XP in this level · next level at ${xp.nextLevelAt}`}</Text></Card>
     </Screen>
   );
 }
@@ -78,12 +79,12 @@ const styles = StyleSheet.create({
   center: { flex: 1, backgroundColor: bb.colors.canvas, alignItems: 'center', justifyContent: 'center', gap: 16, padding: 24 },
   topRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
   flex: { flex: 1, gap: 10 },
-  title: { color: bb.colors.emerald, fontFamily: 'monospace', fontWeight: '900', fontSize: 20, lineHeight: 28 },
+  title: { color: bb.colors.title, fontFamily: bb.fonts.display, fontWeight: '900', fontSize: 24, lineHeight: 28, textShadowColor: bb.colors.border, textShadowOffset: { width: 2, height: 2 }, textShadowRadius: 2 },
   muted: { color: bb.colors.muted, fontSize: 13, lineHeight: 20 },
-  level: { paddingHorizontal: 12, paddingVertical: 9, backgroundColor: bb.colors.raised, borderColor: bb.colors.emerald, borderWidth: 1, borderRadius: bb.radius.sm },
+  level: { paddingHorizontal: 10, paddingVertical: 8, backgroundColor: bb.colors.gold, borderTopColor: '#FFE2A6', borderLeftColor: '#FFE2A6', borderRightColor: bb.colors.navGold, borderBottomColor: bb.colors.navGold, borderWidth: 2, borderRadius: bb.radius.sm },
   summaryRow: { flexDirection: 'row', gap: 14, alignItems: 'center' },
   icon: { width: 54, height: 54, borderRadius: bb.radius.md, borderWidth: 1, borderColor: bb.colors.emerald, alignItems: 'center', justifyContent: 'center', backgroundColor: bb.colors.raised },
   iconText: { color: bb.colors.emerald, fontSize: 26 },
   amount: { color: bb.colors.text, fontWeight: '800', fontSize: 17 },
-  cardTitle: { color: bb.colors.text, fontWeight: '800', fontSize: 19 },
+  cardTitle: { color: bb.colors.text, fontFamily: bb.fonts.display, fontWeight: '900', fontSize: 18, textTransform: 'uppercase' },
 });

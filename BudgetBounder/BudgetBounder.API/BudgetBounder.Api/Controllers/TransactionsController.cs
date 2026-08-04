@@ -36,7 +36,15 @@ namespace BudgetBounder.Api.Controllers
             if (_currentUser.UserId is not int userId) return Unauthorized();
             transaction.UserId = userId;
             if (transaction.Amount <= 0) return BadRequest("Amount must be greater than zero.");
+            if (transaction.Latitude is < -90 or > 90 || transaction.Longitude is < -180 or > 180)
+                return BadRequest("Merchant coordinates are invalid.");
+            if (transaction.ReceiptImageDataUrl?.Length > 7_000_000)
+                return BadRequest("Receipt image is too large.");
+            var user = _context.Users.Find(userId);
+            if (user == null) return NotFound("User not found.");
             _context.Transactions.Add(transaction);
+            ProgressionService.AwardXp(user, 10);
+            ProgressionService.UpdateStreak(user, DateOnly.FromDateTime(DateTime.UtcNow));
             AutoCompleteMission(userId, transaction.Type);
             _context.SaveChanges();
             return transaction;
