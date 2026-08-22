@@ -6,7 +6,7 @@ import { buildReminderPlan, type ReminderPreferences } from './reminderRules';
 Notifications.setNotificationHandler({
   handleNotification: async () => ({ shouldPlaySound: false, shouldSetBadge: false, shouldShowBanner: true, shouldShowList: true }),
 });
-
+ 
 export async function syncSmartReminders(preferences: ReminderPreferences, dashboard: DashboardResponse) {
   const permission = await Notifications.getPermissionsAsync();
   if (!permission.granted) return { scheduled: 0, permissionGranted: false };

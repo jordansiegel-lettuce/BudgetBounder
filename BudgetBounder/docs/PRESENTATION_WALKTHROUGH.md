@@ -1,423 +1,244 @@
-# BudgetBounder Presentation Walkthrough
+# BudgetBounder: Short Presentation Walkthrough
 
-Use this as a speaking guide. Do not try to show every file. The strongest presentation is: explain the architecture, demonstrate one complete feature from phone to database, then use shorter examples to prove the remaining requirements.
-
-## One-minute opening
+## 1. Opening and architecture
 
 Say:
 
-> BudgetBounder is a React Native personal-finance application. The user can register and sign in, record income and expenses, attach a receipt, tag a merchant location, set a monthly budget, manage saving goals, complete missions for XP, and schedule smart reminders. The mobile client communicates with a hosted ASP.NET Core Web API. The API uses JWT authentication, Entity Framework Core, and Microsoft SQL Server.
+> BudgetBounder is a React Native personal-finance app built with Expo. Users can register, log transactions, attach receipts, tag locations, create budgets and saving goals, complete missions, earn XP, and schedule smart reminders. The client calls an ASP.NET Core Web API hosted on Somee. The API uses Entity Framework Core and SQL Server.
 
-Draw or describe this flow:
+Show this flow:
 
 ```text
-React Native app -> Axios + JWT -> ASP.NET Core controllers -> EF Core -> SQL Server
+React Native screen
+    -> Axios API service adds the JWT
+    -> ASP.NET Core controller validates the user and request
+    -> Entity Framework reads or writes SQL Server
+    -> JSON response updates the screen
 ```
 
-Point to:
-
-- `BudgetBounderMobile/app/_layout.tsx`, lines 14-22: application providers.
-- `BudgetBounderMobile/src/services/api.ts`, lines 7-23: Axios URL and JWT interceptor.
-- `BudgetBounder.API/BudgetBounder.Api/Program.cs`, lines 17-35 and 45-77: controllers, SQL Server, JWT, and middleware.
-- `BudgetBounder.API/BudgetBounder.Api/Data/BudgetBounderDbContext.cs`, lines 13-19: database tables.
-
-## Recommended live-demo order
-
-### 1. Authentication
-
-Demonstrate registration or sign-in.
-
-Say:
-
-> Authentication is not only a visual form. The client calls the users API, receives a JWT, and stores it in the device's secure storage. Every later request automatically adds the token as a Bearer authorization header. Protected routes are unavailable without a token.
-
-Point to:
-
-- `BudgetBounderMobile/app/sign-in.tsx`, lines 8-21: controlled form, loading state, and error handling.
-- `BudgetBounderMobile/src/auth/AuthProvider.tsx`, lines 19-37: restore and securely store the session.
-- `BudgetBounderMobile/src/auth/AuthProvider.tsx`, lines 42-54: sign-in, registration, and sign-out.
-- `BudgetBounderMobile/src/services/api.ts`, lines 17-23: automatic `Authorization: Bearer` header.
-- `BudgetBounderMobile/app/_layout.tsx`, lines 39-55: public and authenticated route groups.
-- `BudgetBounder.API/BudgetBounder.Api/Controllers/UsersController.cs`, lines 34-107: server registration, login, password checking, and JWT creation.
-- `BudgetBounder.API/BudgetBounder.Api/Program.cs`, lines 45-64: JWT validation and the admin policy.
-
-Likely question: **Why use SecureStore instead of normal state or AsyncStorage?**
-
-Answer:
-
-> React state disappears when the app closes. SecureStore persists the session using protected device storage and is more appropriate for a JWT than plain storage.
-
-### 2. Dashboard
-
-Open Home and identify the budget summary, recent activity, goal, mission, XP, level, and streak.
-
-Say:
-
-> The dashboard intentionally uses one aggregated endpoint. Instead of making many client requests, the API calculates the financial summary and returns the user's most relevant mission, goal, and recent transactions in one response.
-
-Point to:
-
-- `BudgetBounderMobile/app/(tabs)/index.tsx`, lines 10-31: dashboard request and loading/error states.
-- `BudgetBounderMobile/app/(tabs)/index.tsx`, lines 33-77: rendering finance, mission, goal, and transaction data.
-- `BudgetBounder.API/BudgetBounder.Api/Controllers/DashboardController.cs`, lines 18-52: authenticated aggregate endpoint.
-- `BudgetBounder.API/BudgetBounder.Api/Services/FinancialSummaryService.cs`, lines 17-48: month filtering, totals, remaining budget, and category grouping.
-
-Likely question: **Why is the calculation on the server?**
-
-Answer:
-
-> The server is the trusted data source. Keeping the calculation there avoids duplicating business rules across clients and lets the API filter only the authenticated user's records.
-
-### 3. Add a transaction: your strongest end-to-end feature
-
-Open Add Transaction. Enter an amount, select a category, capture a receipt, tag a location, and save.
-
-Say:
-
-> This demonstrates React state, validation, two native sensors, an authenticated API request, database persistence, and gamification in one flow.
-
-Point to the mobile side:
-
-- `BudgetBounderMobile/app/modal.tsx`, lines 12-17: form and native-data state.
-- `BudgetBounderMobile/app/modal.tsx`, lines 19-25: camera permission, camera launch, and Base64 receipt.
-- `BudgetBounderMobile/app/modal.tsx`, lines 27-35: foreground location and reverse geocoding.
-- `BudgetBounderMobile/app/modal.tsx`, lines 37-48: validation, POST request, error handling, and loading cleanup.
-- `BudgetBounderMobile/app/modal.tsx`, lines 51-61: rendered form, native-tool buttons, preview, and save action.
-
-Then point to the API side:
-
-- `BudgetBounder.API/BudgetBounder.Api/Controllers/TransactionsController.cs`, lines 33-46: user ownership, amount/coordinate/image validation, persistence, and mission update.
-- `BudgetBounder.API/BudgetBounder.Api/Controllers/TransactionsController.cs`, lines 99-125: mission progress and XP/level update.
-- `BudgetBounder.API/BudgetBounder.Api/Models/Transaction.cs`, lines 1-23: persisted transaction fields, including receipt and merchant position.
-- `BudgetBounder.API/BudgetBounder.Api/Migrations/20260804191606_AddReceiptAndMerchantLocation.cs`, lines 8-44: schema migration for the native data.
-
-Likely question: **Why request permissions at button press?**
-
-Answer:
-
-> Camera and location are optional. Permission is requested only when the user chooses that feature, and denial does not prevent manual transaction entry.
-
-Likely question: **Why reduce image quality to 0.35?**
-
-Answer:
-
-> A receipt only needs to remain readable. Compression reduces request size and database/storage pressure. The API also rejects images above its maximum size.
-
-### 4. Budgets and saving goals
-
-Demonstrate setting a monthly budget, creating a goal, and adding a contribution.
-
-Say:
-
-> These screens reuse shared validation and authenticated API services. The API also validates the values, because client-side validation improves usability but cannot be trusted for security or data integrity.
-
-Point to:
-
-- `BudgetBounderMobile/app/budget.tsx`, lines 9-14: validate and save the current month's budget.
-- `BudgetBounderMobile/app/create-goal.tsx`, lines 9-18: create a goal with a positive target and future deadline.
-- `BudgetBounderMobile/app/contribute-goal.tsx`, lines 9-14: add positive progress to a goal.
-- `BudgetBounderMobile/src/validation/financeForms.ts`, lines 1-13: reusable client validation.
-- `BudgetBounder.API/BudgetBounder.Api/Controllers/BudgetsController.cs`, lines 26-47: validated budget upsert.
-- `BudgetBounder.API/BudgetBounder.Api/Controllers/SavingGoalController.cs`, lines 32-72: goal creation, ownership, contribution validation, and completion.
-
-### 5. Missions and gamification
-
-Open Missions, then Profile to show XP, level, and streak.
-
-Say:
-
-> Gamification makes the finance workflow more engaging. Missions are linked to real actions. When a matching transaction is saved, the server increments mission progress and awards XP after completion. This cannot be safely controlled only by the client.
-
-Point to:
-
-- `BudgetBounderMobile/app/(tabs)/missions.tsx`, lines 10-22: fetch and display active missions and progress.
-- `BudgetBounderMobile/app/(tabs)/profile.tsx`, lines 7-27: display account progression and provide reminder/budget actions.
-- `BudgetBounder.API/BudgetBounder.Api/Controllers/TransactionsController.cs`, lines 99-125: automatic mission completion.
-- `BudgetBounder.API/BudgetBounder.Api/Services/ProgressionService.cs`, lines 5-26: XP and streak business rules.
-- `BudgetBounder.API/BudgetBounder.Api/Services/LevelService.cs`, lines 3-8: level calculation.
-
-### 6. Smart push reminders
-
-Open Smart Reminders and explain the four reminder types.
-
-Say:
-
-> The reminder feature is smart because the schedule is derived from current financial data and user preferences. It supports a daily logging reminder, a budget threshold warning, a weekly goal check-in, and a mission-expiry warning. Notification taps deep-link to the relevant screen.
-
-Point to:
-
-- `BudgetBounderMobile/app/reminders.tsx`, lines 11-40: load/save preferences, request permission, and synchronize reminders.
-- `BudgetBounderMobile/src/reminders/reminderRules.ts`, lines 28-42: next daily and weekly times.
-- `BudgetBounderMobile/src/reminders/reminderRules.ts`, lines 44-87: data-driven reminder plan.
-- `BudgetBounderMobile/src/reminders/notificationService.ts`, lines 6-25: permission check, Android channel, cancellation, and scheduling.
-- `BudgetBounderMobile/app/_layout.tsx`, lines 26-36: notification-tap deep linking and listener cleanup.
-- `BudgetBounder.API/BudgetBounder.Api/Controllers/ReminderPreferencesController.cs`, lines 15-37: per-user preference persistence and range validation.
-
-Likely question: **Why separate reminder rules from notification scheduling?**
-
-Answer:
-
-> The rules are pure TypeScript and can be tested without a phone. The notification service handles the device-specific side effects. This separation improves maintainability and testability.
-
-## Assignment requirements: evidence map
-
-### Requirement 1: work in pairs
-
-This is an administrative requirement, not a code requirement.
-
-Be ready to say each partner's responsibilities. Both partners must understand the complete project because the teacher may question either person separately. Use a truthful split such as mobile UI/native features versus API/database, but mention shared integration and testing.
-
-### Requirement 2: React Native or React
-
-Status: **Met with React Native and Expo.**
-
-Point to:
-
-- `BudgetBounderMobile/package.json`, lines 2-8 and 18-41: Expo/React Native application and dependencies.
-- `BudgetBounderMobile/app.json`, lines 2-9: Expo mobile configuration.
-- Any screen file containing React Native components, for example `BudgetBounderMobile/app/modal.tsx`, lines 1-8 and 51-62.
-
-### Requirement 3: at least seven screens
-
-Status: **Exceeded. There are 12 user-facing screens.**
-
-Five main tabs:
-
-1. Home - `app/(tabs)/index.tsx`
-2. Activity - `app/(tabs)/transactions.tsx`
-3. Goals - `app/(tabs)/goals.tsx`
-4. Missions - `app/(tabs)/missions.tsx`
-5. Profile - `app/(tabs)/profile.tsx`
-
-Seven stack/modal screens:
-
-6. Sign in - `app/sign-in.tsx`
-7. Register - `app/register.tsx`
-8. Add transaction - `app/modal.tsx`
-9. Smart reminders - `app/reminders.tsx`
-10. Create goal - `app/create-goal.tsx`
-11. Goal contribution - `app/contribute-goal.tsx`
-12. Monthly budget - `app/budget.tsx`
-
-Point to `BudgetBounderMobile/app/_layout.tsx`, lines 43-55, and `BudgetBounderMobile/app/(tabs)/_layout.tsx`, lines 33-69, to show how Expo Router registers them.
-
-### Requirement 4: database through a C# Web API
-
-Status: **Exceeded. ASP.NET Core, EF Core, SQL Server, and seven tables are implemented.**
-
-Point to:
-
-- `Program.cs`, lines 17-35: controller and SQL Server registration.
-- `Program.cs`, lines 74-78: authentication/authorization pipeline and controller mapping.
-- `BudgetBounderDbContext.cs`, lines 13-19: Users, Transactions, SavingGoals, Missions, MonthlyBudgets, AdminAuditLogs, and ReminderPreferences.
-- `BudgetBounderDbContext.cs`, lines 21-50: unique indexes, query indexes, and relationship behavior.
-- `BudgetBounder.API/BudgetBounder.Api/Migrations/`: version-controlled schema history.
-- `Controllers/`: REST endpoints for each feature.
-
-### Requirement 5: at least three plugins/native capabilities
-
-Status: **Met with three clear capabilities, plus secure storage and haptics.**
-
-1. Camera/receipt capture: `app/modal.tsx`, lines 19-25.
-2. Location/reverse geocoding: `app/modal.tsx`, lines 27-35.
-3. Push/local notifications: `src/reminders/notificationService.ts`, lines 6-30.
-
-Configuration and permission text:
-
-- `BudgetBounderMobile/app.json`, lines 43-57.
-- `BudgetBounderMobile/package.json`, lines 27-30.
-
-Bonus native integrations:
-
-- Secure token storage: `src/auth/AuthProvider.tsx`, lines 25-36 and 52-54.
-- Haptic tab feedback: `components/haptic-tab.tsx`, lines 1-20.
-
-### Requirement 6: proper design and a UI library such as Paper
-
-Status: **Met.**
-
-Point to:
-
-- `app/_layout.tsx`, lines 6 and 17-22: React Native Paper's dark theme provider.
-- `src/theme/tokens.ts`, lines 3-33: centralized palette, typography, spacing, radius, and motion values.
-- `src/components/BbUi.tsx`, lines 17-93: shared animated screen and accessible reduced-motion behavior.
-- `src/components/BbUi.tsx`, lines 98-120: reusable labels, cards, buttons, progress, and state panels.
-- `src/components/BbUi.tsx`, lines 123-148: consistent styling and softened Y2K visual language.
-
-Say:
-
-> Paper provides the application-level design system integration. Our own shared components and tokens build a consistent branded layer on top, so colors and interaction patterns are not copied independently into every screen.
-
-### Requirement 7: narrated Balsamiq/Figma screen video by July 1
-
-Status: **Cannot be proven from the repository. Prepare this separately.**
-
-Before presenting, confirm that the spreadsheet contains:
-
-- Project name and student information.
-- Link to the narrated design/screens video.
-- The required screen-design link if separate.
-
-Do not claim the code satisfies this item. Show the spreadsheet/video link if asked.
-
-### Requirement 8: real device and hosted API
-
-Status: **Code/configuration supports both. The hosted API was reachable on August 4, 2026.**
-
-Point to:
-
-- `.env.example`, line 1: `https://budgetbounder.somee.com/api`.
-- `src/services/apiUrl.ts`, lines 1-14: hosted URL, Expo LAN host, iOS, Android emulator, and fallback behavior.
-- `src/services/api.ts`, lines 7-15: resolved API base URL.
-- `src/services/apiUrl.test.ts`, lines 3-18: physical iPhone and Android URL tests.
-
-The protected endpoint `https://budgetbounder.somee.com/api/dashboard/me` currently returns HTTP 401 without a token. That is positive evidence: the hosted server is reachable and correctly protects the endpoint.
-
-For the live presentation, run the app on the phone with Expo Go and keep the hosted URL configured. Take screenshots/video as a backup in case classroom Wi-Fi fails.
-
-### Requirement 9: Git link containing client and server code
-
-Status: **Repository structure is correct; submission of the link is administrative.**
-
-Show the repository root and these two folders:
-
-- `BudgetBounderMobile/` - React Native client.
-- `BudgetBounder.API/BudgetBounder.Api/` - ASP.NET Core server.
-
-Before the deadline, make sure the submitted remote branch contains current commits and that secrets are not committed. The assignment says the Git link must be in the spreadsheet by 08:00 on August 5, 2026.
-
-## How this targets the higher-grade criteria
-
-### Project complexity and workload
-
-Evidence:
-
-- Full authentication and role-based authorization.
-- Twelve screens and seven database tables.
-- Transactions, budgets, saving goals, missions, XP, levels, streaks, reminders, and admin functionality.
-- End-to-end camera and merchant-location persistence.
-- Aggregated dashboard and monthly financial calculations.
-
-Best files: `DashboardController.cs`, `FinancialSummaryService.cs`, `TransactionsController.cs`, `MissionsController.cs`, and `AdminController.cs`.
-
-### Code quality, standards, and efficiency
-
-Evidence:
-
-- Dependency injection in `Program.cs`, lines 27-32.
-- Business calculation extracted to `FinancialSummaryService.cs`, lines 15-49.
-- Reusable mobile API service in `src/services/api.ts`, lines 7-25.
-- Central theme instead of repeated magic colors in `src/theme/tokens.ts`, lines 3-33.
-- Shared UI components in `src/components/BbUi.tsx`, lines 98-120.
-- Efficient filtered queries in `DashboardController.cs`, lines 27-43, and database indexes in `BudgetBounderDbContext.cs`, lines 25-44.
-
-### Completeness, edge cases, validation, and exception handling
-
-Evidence:
-
-- Client validation: `src/validation/financeForms.ts`, lines 1-13.
-- Server validation: `TransactionsController.cs`, lines 36-42; `BudgetsController.cs`, lines 33-34; `SavingGoalController.cs`, lines 35-37 and 59-65.
-- Authorization/ownership checks: `TransactionsController.cs`, lines 49-67.
-- Loading and `try/catch/finally`: `app/modal.tsx`, lines 37-48.
-- Permission-denial fallback: `app/modal.tsx`, lines 20-21 and 28-29.
-- Notification listener cleanup: `app/_layout.tsx`, lines 32-36.
-- Reduced-motion accessibility: `src/components/BbUi.tsx`, lines 22-73.
-
-### Technology, sensors, and independently learned features
-
-Evidence:
-
-- Camera, location, reverse geocoding, notifications, secure storage, haptics, and deep links.
-- Smart reminder rules based on live finance/goal/mission data.
-- Gamification linked to real server-side actions.
-- Accessible animated UI using the React Native Animated API.
-- JWT and role-based admin policy.
-
-### User interface quality
-
-Evidence:
-
-- Paper provider: `app/_layout.tsx`, lines 17-22.
-- Central theme: `src/theme/tokens.ts`, lines 3-33.
-- Reusable UI: `src/components/BbUi.tsx`, lines 98-148.
-- Dark-mode contrast, softened cards, animated floating boxes, readable state panels, touch targets, and reduced-motion support.
-
-## Testing section
-
-Say:
-
-> The project contains automated tests for business rules that are easy to break: form validation, reminder scheduling, API URL behavior on real devices/emulators, and theme/motion contracts.
-
-Point to:
-
-- `src/validation/financeForms.test.ts`, lines 3-14.
-- `src/reminders/reminderRules.test.ts`, lines 14-55.
-- `src/services/apiUrl.test.ts`, lines 3-18.
-- `src/theme/tokens.test.ts`, lines 3-39.
-
-Commands to know:
-
-```powershell
-cd BudgetBounderMobile
-npm test
-npx tsc --noEmit
-npm run lint
+## 2. Directory: what activates what
+
+```text
+BudgetBounderMobile/
+├── app/                         Expo Router screens
+│   ├── _layout.tsx              Starts providers and protects routes
+│   ├── (tabs)/_layout.tsx       Activates the five bottom tabs
+│   ├── (tabs)/index.tsx         Home/dashboard
+│   ├── (tabs)/transactions.tsx  Activity and saved receipts
+│   ├── (tabs)/goals.tsx         Saving goals
+│   ├── (tabs)/missions.tsx      Missions and completed rewards
+│   └── modal.tsx                Add transaction + native tools
+├── src/auth/AuthProvider.tsx    Login state and SecureStore
+├── src/services/api.ts          All mobile-to-server requests
+├── src/reminders/               Smart notification rules/service
+└── src/components/BbUi.tsx      Shared design and animation
+
+BudgetBounder.API/BudgetBounder.Api/
+├── Program.cs                   Starts API, JWT, services and SQL Server
+├── Controllers/                 HTTP endpoints called by the app
+├── Models/                      Database entity definitions
+├── Data/BudgetBounderDbContext  Tables, relationships and indexes
+├── Services/                    Finance, XP, level and mission logic
+└── Migrations/                  Database schema history
 ```
 
-Do not say that tests prove the complete application works. Say they protect important deterministic rules, while the physical-device demonstration verifies the native integrations.
+Activation sequence:
 
-## Fast answers to likely code questions
+1. Expo starts `app/_layout.tsx`.
+2. `AuthProvider` restores the JWT from SecureStore.
+3. `RootNavigator` shows Sign In/Register without a token or the main app with a token.
+4. Pressing a button navigates to a screen such as `modal.tsx`.
+5. The screen calls `api.ts`; its interceptor adds the JWT.
+6. ASP.NET routes the URL to a controller.
+7. The controller uses `BudgetBounderDbContext` and returns JSON.
+8. React state changes and the screen rerenders.
 
-**What causes a React screen to update?**
+## 3. Four functions to explain
 
-State changes through `useState`, or fetched data is stored in state. React re-renders the component and displays the latest values.
+### Function 1: `RootNavigator`
 
-**What is `useEffect` doing?**
+File: `BudgetBounderMobile/app/_layout.tsx`, lines 39-57.
 
-It performs side effects after rendering: loading data, subscribing to notification events, or starting animation. Its cleanup prevents leaked listeners and animations.
+```tsx
+<Stack.Protected guard={!token}>
+  <Stack.Screen name="sign-in" />
+  <Stack.Screen name="register" />
+</Stack.Protected>
 
-**Why use `async/await`?**
+<Stack.Protected guard={Boolean(token)}>
+  <Stack.Screen name="(tabs)" />
+  <Stack.Screen name="modal" />
+</Stack.Protected>
+```
 
-API, SecureStore, camera, location, and notification operations are asynchronous. Await keeps the sequence readable and allows errors to be handled with `try/catch/finally`.
+Explain:
 
-**What is dependency injection in the API?**
+- `useAuth()` supplies the stored JWT.
+- Without a token, only authentication screens activate.
+- With a token, Expo Router activates tabs and protected feature screens.
+- `app/(tabs)/_layout.tsx`, lines 33-69, defines Home, Activity, Goals, Missions and Profile.
 
-ASP.NET Core creates services such as the database context and current-user service, then supplies them to controllers. This reduces coupling and improves testing/maintenance.
+This proves React Native navigation, multiple screens, authentication and organized code.
 
-**What is Entity Framework Core?**
+### Function 2: `save`
 
-It maps C# models and LINQ queries to SQL Server tables and queries. Migrations version changes to the database schema.
+File: `BudgetBounderMobile/app/modal.tsx`, lines 52-64.
 
-**What is JWT?**
+```tsx
+await api.post('/transactions', {
+  amount: value,
+  title,
+  category,
+  type,
+  receiptImageDataUrl: receipt?.dataUrl,
+  latitude: merchant?.latitude,
+  longitude: merchant?.longitude,
+});
+```
 
-After login, the server signs a token containing identity claims. The app sends it with each request. ASP.NET validates its issuer, audience, lifetime, and signature before protected controllers execute.
+Explain:
 
-**How do you stop one user reading another user's data?**
+- React state stores the form values.
+- The function rejects an amount that is zero or negative.
+- `try/catch/finally` handles success, errors and loading state.
+- `api.post` sends the transaction to the C# server.
+- Camera: `modal.tsx`, lines 22-30.
+- Gallery: `modal.tsx`, lines 32-40.
+- Location and reverse geocoding: `modal.tsx`, lines 42-50.
+- The Activity tab reloads on focus and shows the saved receipt image.
 
-The API gets the user ID from the validated JWT and filters queries by that ID. Ownership checks return `Forbid` when another user's resource is requested.
+This proves React state, API communication, validation and three device capabilities.
 
-**Why have validation on both sides?**
+### Function 3: `ReceiveTransaction`
 
-Client validation gives immediate feedback. Server validation protects the database because a malicious or outdated client can bypass the mobile checks.
+File: `BudgetBounder.API/BudgetBounder.Api/Controllers/TransactionsController.cs`, lines 34-51.
 
-**How does the animation respect accessibility?**
+Explain in order:
 
-`BbUi.tsx` asks `AccessibilityInfo` whether reduced motion is enabled. When enabled, it sets the final static values and does not start the looping drift animation.
+1. Read the authenticated user ID from the JWT.
+2. Reject invalid amounts, coordinates or oversized receipt images.
+3. Find the user and attach their ID to the transaction.
+4. Add the transaction through Entity Framework.
+5. Award 10 base XP and update the streak.
+6. Update the matching income/expense mission.
+7. Call `SaveChanges()` to persist everything together.
 
-## Final 20-second closing
+Point to `AutoCompleteMission`, lines 103-130, for mission progress and reward XP.
+
+This is the best function for explaining the complete client -> API -> database -> XP flow.
+
+### Function 4: `buildReminderPlan`
+
+File: `BudgetBounderMobile/src/reminders/reminderRules.ts`, lines 44-87.
+
+Explain:
+
+- Inputs are user preferences plus budget, spending, goal and mission data.
+- It creates only enabled reminders.
+- It supports daily logging, budget threshold, weekly goal and mission-expiry reminders.
+- Each reminder includes a URL so tapping it opens the correct screen.
+- `notificationService.ts`, lines 10-25, converts the plan into device notifications.
+- The rules are separated from the device API so they can be unit tested.
+
+This proves notifications, original business logic and testable design.
+
+## 4. Requirement checklist
+
+### 1. Work in pairs
+
+Administrative requirement. Be ready to explain each partner's contribution, but both partners should understand these four functions.
+
+### 2. React Native or React
+
+Met with React Native and Expo.
+
+- `BudgetBounderMobile/package.json`: React Native/Expo packages.
+- `BudgetBounderMobile/app/`: React Native screens.
+
+### 3. At least seven screens
+
+Exceeded with 12 screens:
+
+- Five tabs: Home, Activity, Goals, Missions and Profile.
+- Sign In, Register, Add Transaction, Smart Reminders, Create Goal, Goal Contribution and Monthly Budget.
+
+Show `app/_layout.tsx`, lines 43-55, and `app/(tabs)/_layout.tsx`, lines 33-69.
+
+### 4. Database through a C# Web API
+
+Exceeded with ASP.NET Core, EF Core, SQL Server and seven tables.
+
+- `Program.cs`, lines 17-35: controllers and SQL Server registration.
+- `Program.cs`, lines 45-77: JWT and controller middleware.
+- `BudgetBounderDbContext.cs`, lines 13-19: Users, Transactions, SavingGoals, Missions, MonthlyBudgets, AdminAuditLogs and ReminderPreferences.
+- `Migrations/`: reproducible database schema.
+
+### 5. At least three plugins/native capabilities
+
+Met:
+
+1. Camera receipt capture: `modal.tsx`, lines 22-30.
+2. Gallery image selection: `modal.tsx`, lines 32-40.
+3. Location/reverse geocoding: `modal.tsx`, lines 42-50.
+4. Notifications: `notificationService.ts`, lines 10-30.
+
+SecureStore and haptic tabs are additional native features.
+
+### 6. Proper UI and a design library
+
+Met:
+
+- React Native Paper provider: `app/_layout.tsx`, lines 14-22.
+- Central design tokens: `src/theme/tokens.ts`.
+- Reusable cards, buttons, progress bars and state panels: `src/components/BbUi.tsx`, lines 98-120.
+- Dark theme, consistent spacing, animation and reduced-motion accessibility.
+
+### 7. Narrated Balsamiq/Figma video
+
+Not a code item. Make sure the spreadsheet contains the project/student details and narrated screen-design video link.
+
+### 8. Real device and hosted API
+
+Met:
+
+- Run the app with Expo Go on the phone.
+- `.env.example` points to `https://budgetbounder.somee.com/api`.
+- `src/services/api.ts`, lines 7-23, configures the URL and JWT.
+- Somee hosts the ASP.NET API and SQL database.
+
+### 9. Git link with client and server
+
+The same repository contains:
+
+- `BudgetBounderMobile/`: client.
+- `BudgetBounder.API/BudgetBounder.Api/`: server.
+
+Confirm the public Git link is submitted, current changes are pushed, and no secrets are tracked.
+
+## 5. High-grade points
 
 Say:
 
-> BudgetBounder meets the baseline requirements and goes beyond them through secure authentication, seven database entities, twelve screens, three required native capabilities, smart data-driven reminders, gamification, validation, tests, hosted deployment, and a consistent accessible design system. The main engineering idea is that mobile interactions, API authorization, business rules, and database persistence work together as one complete product.
+> We went beyond the baseline through JWT authentication, 12 screens, seven database tables, camera/gallery/location/notifications, receipt persistence, smart reminders, budgets, saving goals, missions, XP, levels, streaks, validation, tests, hosted deployment and an accessible animated design system.
 
-## Night-before checklist
+Strong evidence:
 
-- Confirm both partners can explain authentication, transaction saving, and one native plugin.
-- Confirm the phone is signed in and the main screens contain useful demo data.
-- Test camera, location, and notification permissions on the actual phone.
-- Open `https://budgetbounder.somee.com/api/dashboard/me`; expect 401 without a token, not a connection error.
-- Confirm the SQL script/migrations have been applied to the hosted database.
-- Push the latest client and server code to Git.
-- Confirm the Git link and narrated Balsamiq/Figma video link are in the assignment spreadsheet.
-- Bring a charger and prepare a screen recording/screenshots in case the network fails.
-- Do not expose the JWT signing key, database password, or real access token during the presentation.
+- Complexity: transaction, budget, goal, mission and progression systems work together.
+- Code quality: controllers, services, reusable UI, central API client and central theme are separated.
+- Edge cases: client and server validation, ownership checks, permission denial, loading and error states.
+- Innovation: smart data-driven reminders, gamification, native receipt/location data and animation.
+- Tests: 23 API tests and 20 mobile tests currently pass.
+
+## 6. Final presentation order
+
+1. Read the opening paragraph.
+2. Show the directory and activation flow.
+3. Demonstrate Sign In -> Home -> Add Transaction.
+4. Use `save` and `ReceiveTransaction` to explain the full data flow.
+5. Show the saved receipt, updated XP and completed mission.
+6. Open Goals and Smart Reminders.
+7. Finish with the requirement checklist and high-grade sentence.
+
+Final sentence:
+
+> BudgetBounder is a complete mobile product: native React screens, a protected hosted C# API, persistent SQL data, device integrations and business logic all work together.
