@@ -1,7 +1,9 @@
 import axios from "axios";
+import { resolveWebApiUrl } from "./apiUrl";
+import type { AdminAuditEntry, AdminOverview, AiRecommendation, GameSession, RewardDefinition } from "../types/admin";
 
 const api = axios.create({
-  baseURL: "http://localhost:5292/api",
+  baseURL: resolveWebApiUrl(import.meta.env.VITE_API_URL),
   headers: {
     "Content-Type": "application/json",
   },
@@ -16,3 +18,14 @@ api.interceptors.request.use((config) => {
 });
 
 export default api;
+
+export const adminApi = {
+  analytics: () => api.get<AdminOverview>("/admin/analytics").then((response) => response.data),
+  auditLog: () => api.get<AdminAuditEntry[]>("/admin/audit-log").then((response) => response.data),
+  aiRecommendations: (status?: string) => api.get<AiRecommendation[]>("/admin/ai-recommendations", { params: status && status !== "All" ? { status } : {} }).then((response) => response.data),
+  reviewAiRecommendation: (id: number, decision: "Approved" | "Rejected") => api.patch(`/admin/ai-recommendations/${id}/review`, { decision }),
+  gameSessions: () => api.get<GameSession[]>("/admin/game-sessions").then((response) => response.data),
+  rewards: () => api.get<RewardDefinition[]>("/admin/rewards").then((response) => response.data),
+  createReward: (request: { code: string; name: string; description: string; cosmeticType: string }) => api.post<RewardDefinition>("/admin/rewards", request).then((response) => response.data),
+  setRewardStatus: (id: number, isActive: boolean) => api.patch(`/admin/rewards/${id}/status`, { isActive }),
+};

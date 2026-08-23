@@ -23,3 +23,49 @@ export type AdminUser = {
 };
 
 export type Paged<T> = { items: T[]; total: number; page: number; pageSize: number };
+
+export type AdminAuditEntry = {
+  id: number;
+  adminUserId: number;
+  action: string;
+  targetType: string;
+  targetId: string;
+  details: string;
+  createdAt: string;
+};
+
+export type AiRecommendation = {
+  id: number;
+  userId: number;
+  title: string;
+  content: string;
+  status: string;
+  createdAt: string;
+  reviewedByAdminId: number | null;
+  reviewedAt: string | null;
+};
+
+export type GameSession = {
+  id: number;
+  userId: number;
+  clientResultId: string;
+  score: number;
+  coins: number;
+  savingsStars: number;
+  durationSeconds: number;
+  awardedXp: number;
+  validationState: string;
+  validationReason: string | null;
+  submittedAt: string;
+};
+
+export type RewardDefinition = {
+  id: number;
+  code: string;
+  name: string;
+  description: string;
+  cosmeticType: string;
+  isActive: boolean;
+  unlockCount: number;
+  createdAt: string;
+};

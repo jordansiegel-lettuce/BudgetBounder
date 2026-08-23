@@ -5,8 +5,12 @@ import Login from "./pages/Login";
 import Missions from "./pages/admin/Missions";
 import Monitoring from "./pages/admin/Monitoring";
 import Overview from "./pages/admin/Overview";
-import Placeholder from "./pages/admin/Placeholder";
 import Users from "./pages/admin/Users";
+import Analytics from "./pages/admin/Analytics";
+import AuditLog from "./pages/admin/AuditLog";
+import AiReview from "./pages/admin/AiReview";
+import GameOperations from "./pages/admin/GameOperations";
+import Rewards from "./pages/admin/Rewards";
 import "./App.css";
 import { canAccessAdmin } from "./auth/authToken";
 
@@ -26,12 +30,12 @@ function AppRoutes() {
         <Route path="/overview" element={<Overview />} />
         <Route path="/users" element={<Users />} />
         <Route path="/missions" element={<Missions />} />
-        <Route path="/ai-review" element={<Placeholder title="AI recommendation review" description="Human approval for generated recommendations and missions." />} />
-        <Route path="/analytics" element={<Placeholder title="Product analytics" description="Retention, finance habits, missions, progression and AI engagement." />} />
-        <Route path="/game" element={<Placeholder title="Game operations" description="Unity WebGL sessions, results, errors and suspicious scores." />} />
-        <Route path="/rewards" element={<Placeholder title="Rewards and achievements" description="Safe cosmetic rewards, badge definitions and unlock health." />} />
+        <Route path="/ai-review" element={<AiReview />} />
+        <Route path="/analytics" element={<Analytics />} />
+        <Route path="/game" element={<GameOperations />} />
+        <Route path="/rewards" element={<Rewards />} />
         <Route path="/monitoring" element={<Monitoring />} />
-        <Route path="/audit-log" element={<Placeholder title="Audit log" description="Sensitive administrative actions and security events." />} />
+        <Route path="/audit-log" element={<AuditLog />} />
       </Route>
     </Route>
     <Route path="*" element={<Navigate to="/overview" replace />} />

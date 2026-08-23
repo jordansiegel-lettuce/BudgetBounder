@@ -17,6 +17,10 @@ namespace BudgetBounder.Api.Data
         public DbSet<MonthlyBudget> MonthlyBudgets { get; set; }
         public DbSet<AdminAuditLog> AdminAuditLogs { get; set; }
         public DbSet<ReminderPreferences> ReminderPreferences { get; set; }
+        public DbSet<AiRecommendation> AiRecommendations { get; set; }
+        public DbSet<GameSession> GameSessions { get; set; }
+        public DbSet<RewardDefinition> RewardDefinitions { get; set; }
+        public DbSet<UserReward> UserRewards { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -48,6 +52,27 @@ namespace BudgetBounder.Api.Data
                 .WithMany()
                 .HasForeignKey(a => a.AdminUserId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<AiRecommendation>()
+                .HasIndex(r => new { r.Status, r.CreatedAt });
+            modelBuilder.Entity<AiRecommendation>()
+                .HasOne(r => r.ReviewedByAdmin)
+                .WithMany()
+                .HasForeignKey(r => r.ReviewedByAdminId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<GameSession>()
+                .HasIndex(s => new { s.UserId, s.ClientResultId })
+                .IsUnique();
+            modelBuilder.Entity<GameSession>()
+                .HasIndex(s => new { s.UserId, s.SubmittedAt });
+
+            modelBuilder.Entity<RewardDefinition>()
+                .HasIndex(r => r.Code)
+                .IsUnique();
+            modelBuilder.Entity<UserReward>()
+                .HasIndex(r => new { r.UserId, r.RewardDefinitionId })
+                .IsUnique();
         }
     }
 }

@@ -118,7 +118,7 @@ public class AdminController(
         api = new { status = "Operational", checkedAt = DateTime.UtcNow },
         database = new { status = "Operational" },
         ai = new { status = "Configured" },
-        unity = new { status = "Milestone 2" }
+        unity = new { status = "Operational" }
     });
 
     [HttpGet("audit-log")]
