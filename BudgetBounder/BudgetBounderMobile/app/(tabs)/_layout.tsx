@@ -1,5 +1,6 @@
-import { Tabs } from 'expo-router';
+import { router, Tabs } from 'expo-router';
 import React from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -52,6 +53,24 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="tower-launcher"
+        options={{
+          title: 'Tower',
+          tabBarButton: ({ accessibilityState }) => (
+            <Pressable
+              accessibilityLabel="Open Tower game"
+              accessibilityRole="button"
+              onPress={() => router.push('/tower')}
+              style={styles.towerTab}>
+              <View style={[styles.towerOrb, accessibilityState?.selected && styles.towerOrbActive]}>
+                <IconSymbol size={27} name="gamecontroller.fill" color={bb.colors.carbon} />
+              </View>
+              <Text style={styles.towerLabel}>TOWER</Text>
+            </Pressable>
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="missions"
         options={{
           title: 'Missions',
@@ -70,3 +89,10 @@ export default function TabLayout() {
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  towerTab: { flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: -16 },
+  towerOrb: { width: 54, height: 54, borderRadius: 27, alignItems: 'center', justifyContent: 'center', backgroundColor: bb.colors.gold, borderWidth: 3, borderTopColor: '#FFE5A2', borderLeftColor: '#FFE5A2', borderRightColor: '#9C5A11', borderBottomColor: '#9C5A11', elevation: 8, shadowColor: '#000', shadowOpacity: 0.4, shadowRadius: 8, shadowOffset: { width: 0, height: 5 } },
+  towerOrbActive: { backgroundColor: bb.colors.navGold },
+  towerLabel: { color: bb.colors.navGold, fontFamily: bb.fonts.body, fontSize: 9, fontWeight: '900', letterSpacing: 0.6, marginTop: 1 },
+});

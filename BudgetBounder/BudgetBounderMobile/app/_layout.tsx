@@ -52,6 +52,7 @@ function RootNavigator() {
           <Stack.Screen name="create-goal" options={chromeHeader('Create goal')} />
           <Stack.Screen name="contribute-goal" options={chromeHeader('Goal contribution')} />
           <Stack.Screen name="budget" options={chromeHeader('Monthly budget')} />
+          <Stack.Screen name="tower" options={{ headerShown: false, gestureEnabled: false }} />
         </Stack.Protected>
       </Stack>
   );

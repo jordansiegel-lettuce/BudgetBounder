@@ -20,6 +20,7 @@ const MAPPING = {
   'target': 'track-changes',
   'checklist': 'checklist',
   'person.crop.circle.fill': 'person',
+  'gamecontroller.fill': 'sports-esports',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
 } as IconMapping;
