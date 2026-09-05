@@ -38,6 +38,34 @@ public class MissionsControllerTests
         Assert.Contains(missions, mission => mission.IsCompleted && mission.Title == "Completed expense mission");
     }
 
+    [Theory]
+    [InlineData(false, 0)]
+    [InlineData(true, 1)]
+    public void CompleteMission_DeniesUnearnedOrExpired(bool expired, double progress)
+    {
+        using var context = new BudgetBounderDbContext(new DbContextOptionsBuilder<BudgetBounderDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+        var mission = new Mission { UserId = 4, TargetValue = 1, CurrentProgress = progress, ExpiresAt = DateTime.UtcNow.AddDays(expired ? -1 : 1) };
+        context.Missions.Add(mission);
+        context.SaveChanges();
+        var controller = new MissionsController(context, new HttpClientFactory(), new ConfigurationBuilder().Build(), new CurrentUser(4));
+        Assert.IsType<BadRequestObjectResult>(controller.CompleteMission(mission.Id).Result);
+        Assert.False(mission.IsCompleted);
+    }
+
+    [Theory]
+    [InlineData("Draft")]
+    [InlineData("Rejected")]
+    public void UnapprovedMissionIsHiddenAndCannotBeClaimed(string status)
+    {
+        using var db = new BudgetBounderDbContext(new DbContextOptionsBuilder<BudgetBounderDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+        var mission = new Mission { UserId = 4, Title = "Unreviewed", IsAiGenerated = true, ReviewStatus = status, TargetValue = 1, CurrentProgress = 1, ExpiresAt = DateTime.UtcNow.AddDays(3) };
+        db.Missions.Add(mission); db.SaveChanges();
+        var controller = new MissionsController(db, new HttpClientFactory(), new ConfigurationBuilder().Build(), new CurrentUser(4));
+        var list = Assert.IsAssignableFrom<IEnumerable<Mission>>(Assert.IsType<OkObjectResult>(controller.GetUserMissions(4).Result).Value);
+        Assert.DoesNotContain(list, m => m.Id == mission.Id);
+        Assert.IsType<BadRequestObjectResult>(controller.CompleteMission(mission.Id).Result);
+    }
+
     private sealed class HttpClientFactory : IHttpClientFactory
     {
         public HttpClient CreateClient(string name) => new();

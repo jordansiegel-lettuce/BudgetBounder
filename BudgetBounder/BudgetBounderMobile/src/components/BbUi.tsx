@@ -1,5 +1,5 @@
 import { bb } from '@/src/theme/tokens';
-import { useEffect, useRef, useState, type PropsWithChildren, type ReactNode } from 'react';
+import { useEffect, useState, type PropsWithChildren, type ReactNode } from 'react';
 import {
   AccessibilityInfo,
   ActivityIndicator,
@@ -15,8 +15,8 @@ import {
 } from 'react-native';
 
 export function Screen({ children }: PropsWithChildren) {
-  const entrance = useRef(new Animated.Value(1)).current;
-  const drift = useRef(new Animated.Value(0)).current;
+  const [entrance] = useState(() => new Animated.Value(1));
+  const [drift] = useState(() => new Animated.Value(0));
   const [reduceMotion, setReduceMotion] = useState(true);
 
   useEffect(() => {
@@ -122,7 +122,7 @@ export function StatePanel({ title, message, action }: { title: string; message:
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: bb.colors.canvas, overflow: 'hidden' },
-  ambientLayer: { ...StyleSheet.absoluteFillObject },
+  ambientLayer: { ...StyleSheet.absoluteFill },
   floatBox: { position: 'absolute', borderWidth: 1, borderColor: bb.colors.border, borderRadius: bb.radius.xl },
   floatBoxOne: { width: 112, height: 112, top: '12%', right: -32, backgroundColor: bb.colors.floatBlue },
   floatBoxTwo: { width: 76, height: 76, top: '45%', left: -24, backgroundColor: bb.colors.floatGold },

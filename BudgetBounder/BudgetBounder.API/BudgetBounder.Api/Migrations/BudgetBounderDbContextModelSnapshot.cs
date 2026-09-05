@@ -156,6 +156,33 @@ namespace BudgetBounder.Api.Migrations
                     b.ToTable("GameSessions");
                 });
 
+            modelBuilder.Entity("BudgetBounder.Api.Models.LevelHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Level")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("RecordedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<double>("XP")
+                        .HasColumnType("float");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "RecordedAt");
+
+                    b.ToTable("LevelHistory");
+                });
+
             modelBuilder.Entity("BudgetBounder.Api.Models.Mission", b =>
                 {
                     b.Property<int>("Id")
@@ -171,6 +198,7 @@ namespace BudgetBounder.Api.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<double>("CurrentProgress")
+                        .IsConcurrencyToken()
                         .HasColumnType("float");
 
                     b.Property<string>("Description")
@@ -188,12 +216,25 @@ namespace BudgetBounder.Api.Migrations
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsCompleted")
+                        .IsConcurrencyToken()
                         .HasColumnType("bit");
 
                     b.Property<string>("MissionType")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("ReviewStatus")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ReviewedByAdminId")
+                        .HasColumnType("int");
 
                     b.Property<double>("TargetValue")
                         .HasColumnType("float");
@@ -333,6 +374,33 @@ namespace BudgetBounder.Api.Migrations
                         .IsUnique();
 
                     b.ToTable("RewardDefinitions");
+                });
+
+            modelBuilder.Entity("BudgetBounder.Api.Models.SavingContribution", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<double>("Amount")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("SavingGoalId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "CreatedAt");
+
+                    b.ToTable("SavingContributions");
                 });
 
             modelBuilder.Entity("BudgetBounder.Api.Models.SavingGoal", b =>

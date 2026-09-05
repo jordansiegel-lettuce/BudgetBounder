@@ -11,6 +11,7 @@ namespace BudgetBounder.Api.Models
         public string Description { get; set; } = "";
         public int XPReward { get; set; }
         public string Difficulty { get; set; } = "Easy";
+        [ConcurrencyCheck]
         public bool IsCompleted { get; set; } = false;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? CompletedAt { get; set; }
@@ -18,7 +19,12 @@ namespace BudgetBounder.Api.Models
         [MaxLength(50)]
         public string MissionType { get; set; } = "";
         public double TargetValue { get; set; }
+        [ConcurrencyCheck]
         public double CurrentProgress { get; set; }
         public bool IsAiGenerated { get; set; } = false;
+        [MaxLength(20), ConcurrencyCheck]
+        public string ReviewStatus { get; set; } = "Approved";
+        public int? ReviewedByAdminId { get; set; }
+        public DateTime? ReviewedAt { get; set; }
     }
 }

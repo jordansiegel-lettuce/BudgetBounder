@@ -1,6 +1,6 @@
 import api from '@/src/services/api';
 import type { AuthResponse, UserProfile } from '@/src/types/api';
-import * as SecureStore from 'expo-secure-store';
+import AuthStorage from './authStorage';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 type AuthContextValue = {
@@ -23,7 +23,7 @@ export function AuthProvider({ children }: React.PropsWithChildren) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([SecureStore.getItemAsync(TOKEN_KEY), SecureStore.getItemAsync(USER_KEY)])
+    Promise.all([AuthStorage.getItemAsync(TOKEN_KEY), AuthStorage.getItemAsync(USER_KEY)])
       .then(([storedToken, storedUser]) => {
         setToken(storedToken);
         setUser(storedUser ? JSON.parse(storedUser) : null);
@@ -33,8 +33,8 @@ export function AuthProvider({ children }: React.PropsWithChildren) {
 
   const persist = useCallback(async (response: AuthResponse) => {
     await Promise.all([
-      SecureStore.setItemAsync(TOKEN_KEY, response.token),
-      SecureStore.setItemAsync(USER_KEY, JSON.stringify(response.user)),
+      AuthStorage.setItemAsync(TOKEN_KEY, response.token),
+      AuthStorage.setItemAsync(USER_KEY, JSON.stringify(response.user)),
     ]);
     setToken(response.token);
     setUser(response.user);
@@ -52,12 +52,12 @@ export function AuthProvider({ children }: React.PropsWithChildren) {
 
   const refreshUser = useCallback(async () => {
     const { data } = await api.get<UserProfile>('/users/me');
-    await SecureStore.setItemAsync(USER_KEY, JSON.stringify(data));
+    await AuthStorage.setItemAsync(USER_KEY, JSON.stringify(data));
     setUser(data);
   }, []);
 
   const signOut = useCallback(async () => {
-    await Promise.all([SecureStore.deleteItemAsync(TOKEN_KEY), SecureStore.deleteItemAsync(USER_KEY)]);
+    await Promise.all([AuthStorage.deleteItemAsync(TOKEN_KEY), AuthStorage.deleteItemAsync(USER_KEY)]);
     setToken(null);
     setUser(null);
   }, []);

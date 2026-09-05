@@ -26,7 +26,7 @@ public class DashboardController(
 
         var summary = await summaries.GetMonthlySummaryAsync(userId, selectedMonth, cancellationToken);
         var mission = await context.Missions
-            .Where(m => m.UserId == userId && !m.IsCompleted && m.ExpiresAt > DateTime.UtcNow)
+            .Where(m => m.UserId == userId && m.ReviewStatus == "Approved" && !m.IsCompleted && m.ExpiresAt > DateTime.UtcNow)
             .OrderBy(m => m.ExpiresAt)
             .Select(m => new { m.Id, m.Title, m.Description, m.XPReward, m.CurrentProgress, m.TargetValue, m.ExpiresAt })
             .FirstOrDefaultAsync(cancellationToken);

@@ -45,6 +45,17 @@ namespace BudgetBounder.Api
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnTokenValidated = async validation =>
+                        {
+                            var id = validation.Principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                                ?? validation.Principal?.FindFirst("sub")?.Value;
+                            var db = validation.HttpContext.RequestServices.GetRequiredService<BudgetBounderDbContext>();
+                            if (!int.TryParse(id, out var userId) || !await db.Users.AnyAsync(u => u.Id == userId && u.IsActive))
+                                validation.Fail("Account is inactive or no longer exists.");
+                        }
+                    };
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuer = true,

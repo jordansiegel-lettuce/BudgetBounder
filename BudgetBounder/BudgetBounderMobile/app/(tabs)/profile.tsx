@@ -3,11 +3,15 @@ import { Card, PixelLabel, PrimaryButton, Progress, Screen } from '@/src/compone
 import { bb } from '@/src/theme/tokens';
 import { getXpProgress } from '@/src/progression/xpProgress';
 import { router, type Href, useFocusEffect } from 'expo-router';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
+import api from '@/src/services/api';
 import { StyleSheet, Text, View } from 'react-native';
 
 export default function ProfileScreen() {
   const { user, refreshUser, signOut } = useAuth();
+  const [badges, setBadges] = useState<{ id: number; name: string; description: string }[]>([]);
+  const [badgeError, setBadgeError] = useState('');
+  useFocusEffect(useCallback(() => { api.post('/achievements/sync').then(r => { setBadges(r.data); setBadgeError(''); }).catch(() => setBadgeError('Achievements could not be refreshed.')); }, []));
   useFocusEffect(useCallback(() => { void refreshUser().catch(() => undefined); }, [refreshUser]));
   if (!user) return null;
   const xp = getXpProgress(user.xp);
@@ -16,8 +20,10 @@ export default function ProfileScreen() {
     <Card accent={bb.colors.emerald}><View style={styles.row}><View style={styles.avatar}><Text style={styles.avatarText}>{user.fullName.slice(0, 1).toUpperCase()}</Text></View><View style={styles.flex}><Text style={styles.name}>{user.fullName}</Text><Text style={styles.muted}>Level {user.level} · Expense Ranger</Text></View></View><Text style={styles.xpTotal}>{Math.round(user.xp)} TOTAL XP</Text><Progress value={xp.progress} /><Text style={styles.muted}>{xp.nextLevelAt == null ? 'Maximum level reached' : `${Math.round(xp.current)} / ${xp.required} XP in this level · next level at ${xp.nextLevelAt}`}</Text></Card>
     <View style={styles.grid}><Card style={styles.stat}><PixelLabel tone={bb.colors.gold}>STREAK</PixelLabel><Text style={styles.number}>{user.currentStreak}</Text><Text style={styles.muted}>days</Text></Card><Card style={styles.stat}><PixelLabel tone={bb.colors.violet}>ROLE</PixelLabel><Text style={styles.number}>●</Text><Text style={styles.muted}>Player</Text></Card></View>
     <Card><PixelLabel tone={bb.colors.cyan}>ACCOUNT & PRIVACY</PixelLabel><Text style={styles.muted}>{user.email}</Text><Text style={styles.muted}>Security · Notifications · AI data permissions · Accessibility</Text></Card>
+    <Card><PixelLabel tone={bb.colors.gold}>MILESTONE BADGES</PixelLabel>{badges.map(b => <View key={b.id}><Text style={styles.name}>{b.name}</Text><Text style={styles.muted}>{b.description}</Text></View>)}{!badges.length ? <Text style={styles.muted}>{badgeError || 'Log, complete quests and save to unlock your first badge.'}</Text> : null}</Card>
     <PrimaryButton onPress={() => router.push('/reminders' as Href)}>SMART REMINDERS</PrimaryButton>
     <PrimaryButton onPress={() => router.push('/budget' as Href)}>MONTHLY BUDGET</PrimaryButton>
+    <PrimaryButton onPress={() => router.push('/coach' as Href)}>AI FINANCIAL COACH</PrimaryButton>
     <PrimaryButton onPress={signOut}>SIGN OUT</PrimaryButton>
   </Screen>;
 }

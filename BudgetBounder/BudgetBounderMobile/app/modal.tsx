@@ -9,12 +9,12 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-const categories = ['Food', 'Transport', 'Shopping', 'Health', 'Housing', 'Other'];
+const categories = ['Auto', 'Food', 'Transport', 'Shopping', 'Health', 'Housing', 'Other'];
 
 export default function AddTransactionModal() {
   const { refreshUser } = useAuth();
   const [amount, setAmount] = useState(''); const [title, setTitle] = useState('');
-  const [category, setCategory] = useState('Food'); const [type, setType] = useState<'Expense' | 'Income'>('Expense');
+  const [category, setCategory] = useState('Auto'); const [type, setType] = useState<'Expense' | 'Income'>('Expense');
   const [error, setError] = useState(''); const [saving, setSaving] = useState(false);
   const [receipt, setReceipt] = useState<{ uri: string; dataUrl: string } | null>(null);
   const [merchant, setMerchant] = useState<{ latitude: number; longitude: number; address: string } | null>(null);

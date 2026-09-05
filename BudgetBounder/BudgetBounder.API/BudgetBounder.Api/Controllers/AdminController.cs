@@ -26,11 +26,13 @@ public class AdminController(
         [FromQuery] string? search,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
+        [FromQuery] bool? isActive = null,
         CancellationToken cancellationToken = default)
     {
         page = Math.Max(1, page);
         pageSize = Math.Clamp(pageSize, 1, 100);
         var query = context.Users.AsNoTracking();
+        if (isActive.HasValue) query = query.Where(u => u.IsActive == isActive);
         if (!string.IsNullOrWhiteSpace(search))
         {
             query = query.Where(u => u.FullName!.Contains(search) || u.Email!.Contains(search));
@@ -74,43 +76,6 @@ public class AdminController(
         await context.SaveChangesAsync(cancellationToken);
         return NoContent();
     }
-
-    [HttpGet("missions")]
-    public async Task<ActionResult> Missions(CancellationToken cancellationToken) =>
-        Ok(await context.Missions.AsNoTracking()
-            .OrderByDescending(m => m.CreatedAt)
-            .Take(200)
-            .ToListAsync(cancellationToken));
-
-    [HttpPost("missions")]
-    public async Task<ActionResult<Mission>> CreateMission(
-        AdminMissionRequest request,
-        CancellationToken cancellationToken)
-    {
-        if (request.XPReward is < 1 or > 1000 || request.TargetValue <= 0 || request.ExpiresAt <= DateTime.UtcNow)
-            return BadRequest("Reward, target, and expiration are invalid.");
-        if (!await context.Users.AnyAsync(u => u.Id == request.UserId, cancellationToken))
-            return BadRequest("Target user does not exist.");
-        var mission = new Mission
-        {
-            UserId = request.UserId,
-            Title = request.Title,
-            Description = request.Description,
-            Difficulty = request.Difficulty,
-            XPReward = request.XPReward,
-            MissionType = request.MissionType,
-            TargetValue = request.TargetValue,
-            ExpiresAt = request.ExpiresAt
-        };
-        context.Missions.Add(mission);
-        Audit("CreateMission", "Mission", "pending", request.Title);
-        await context.SaveChangesAsync(cancellationToken);
-        return CreatedAtAction(nameof(Missions), new { id = mission.Id }, mission);
-    }
-
-    [HttpGet("analytics")]
-    public async Task<ActionResult<AdminOverviewDto>> Analytics(CancellationToken cancellationToken) =>
-        Ok(await dashboard.GetOverviewAsync(cancellationToken));
 
     [HttpGet("monitoring")]
     public ActionResult Monitoring() => Ok(new

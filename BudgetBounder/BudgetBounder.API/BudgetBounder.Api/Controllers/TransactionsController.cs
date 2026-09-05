@@ -35,7 +35,9 @@ namespace BudgetBounder.Api.Controllers
         {
             if (_currentUser.UserId is not int userId) return Unauthorized();
             transaction.UserId = userId;
-            if (transaction.Amount <= 0) return BadRequest("Amount must be greater than zero.");
+            if (!double.IsFinite(transaction.Amount) || transaction.Amount <= 0) return BadRequest("Amount must be greater than zero.");
+            if (string.IsNullOrWhiteSpace(transaction.Category) || transaction.Category == "Auto")
+                transaction.Category = TransactionCategorizer.Suggest(transaction.Title);
             if (transaction.Latitude is < -90 or > 90 || transaction.Longitude is < -180 or > 180)
                 return BadRequest("Merchant coordinates are invalid.");
             if (transaction.ReceiptImageDataUrl?.Length > 7_000_000)
@@ -74,6 +76,7 @@ namespace BudgetBounder.Api.Controllers
         [HttpPost("complete")]
         public ActionResult<object> CompleteTransaction([FromBody] CompleteTransactionRequest request)
         {
+            if (!double.IsFinite(request.Amount) || request.Amount <= 0) return BadRequest("Amount must be greater than zero.");
             if (_currentUser.UserId is not int userId) return Unauthorized();
             var user = _context.Users.FirstOrDefault(u => u.Id == userId);
             if (user == null) return NotFound("User not found");
@@ -83,7 +86,7 @@ namespace BudgetBounder.Api.Controllers
                 Title = request.Title,
                 Amount = request.Amount,
                 Type = TransactionType.Expense,
-                Category = request.Category,
+                Category = string.IsNullOrWhiteSpace(request.Category) || request.Category == "Auto" ? TransactionCategorizer.Suggest(request.Title) : request.Category,
                 Date = DateTime.UtcNow,
                 UserId = userId
             };
@@ -105,26 +108,22 @@ namespace BudgetBounder.Api.Controllers
             var missionType = type == TransactionType.Income ? "LogIncome" : "LogExpenses";
             var now = DateTime.UtcNow;
 
-            var mission = _context.Missions
-                .FirstOrDefault(m => m.UserId == userId
+            var missions = _context.Missions
+                .Where(m => m.UserId == userId
                                   && m.MissionType == missionType
+                                  && m.ReviewStatus == "Approved"
                                   && !m.IsCompleted
-                                  && m.ExpiresAt > now);
+                                  && m.ExpiresAt > now).ToList();
 
-            if (mission == null) return;
-
-            mission.CurrentProgress += 1;
-            if (mission.CurrentProgress >= mission.TargetValue)
+            foreach (var mission in missions)
             {
-                mission.IsCompleted = true;
-                mission.CompletedAt = now;
-
-                // _context.Users.Find returns the already-tracked instance if loaded, or queries fresh
-                var user = _context.Users.Find(userId);
-                if (user != null)
+                mission.CurrentProgress += 1;
+                if (mission.CurrentProgress >= mission.TargetValue)
                 {
-                    user.XP += mission.XPReward;
-                    user.Level = LevelService.CalculateLevel(user.XP);
+                    mission.IsCompleted = true;
+                    mission.CompletedAt = now;
+                    var user = _context.Users.Find(userId);
+                    if (user != null) ProgressionService.AwardXp(user, mission.XPReward);
                 }
             }
         }
