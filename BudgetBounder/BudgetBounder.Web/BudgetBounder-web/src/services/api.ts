@@ -1,6 +1,7 @@
 import axios from "axios";
+import type { AnalyticsData, AnalyticsFilters } from "../pages/admin/analyticsData";
 import { resolveWebApiUrl } from "./apiUrl";
-import type { AdminAuditEntry, AdminOverview, AiRecommendation, GameSession, RewardDefinition } from "../types/admin";
+import type { AdminAuditEntry, AiRecommendation, GameSession, RewardDefinition } from "../types/admin";
 
 const api = axios.create({
   baseURL: resolveWebApiUrl(import.meta.env.VITE_API_URL),
@@ -20,7 +21,7 @@ api.interceptors.request.use((config) => {
 export default api;
 
 export const adminApi = {
-  analytics: () => api.get<AdminOverview>("/admin/analytics").then((response) => response.data),
+  analytics: (params?: AnalyticsFilters) => api.get<AnalyticsData>("/admin/analytics", { params }).then((response) => response.data),
   auditLog: () => api.get<AdminAuditEntry[]>("/admin/audit-log").then((response) => response.data),
   aiRecommendations: (status?: string) => api.get<AiRecommendation[]>("/admin/ai-recommendations", { params: status && status !== "All" ? { status } : {} }).then((response) => response.data),
   reviewAiRecommendation: (id: number, decision: "Approved" | "Rejected") => api.patch(`/admin/ai-recommendations/${id}/review`, { decision }),

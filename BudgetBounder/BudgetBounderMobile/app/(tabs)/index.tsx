@@ -36,7 +36,7 @@ export default function HomeScreen() {
       <View style={styles.topRow}>
         <View style={styles.flex}>
           <Text style={styles.title}>GOOD MORNING, {(data.user.fullName || user?.fullName || 'PLAYER').split(' ')[0].toUpperCase()}</Text>
-          <Text style={styles.muted}>Financial health is steady this month.</Text>
+          <Text style={styles.muted}>Your budget and activity for this month.</Text>
         </View>
         <View style={styles.level}><PixelLabel>LV {data.user.level} · ✦ {Math.round(data.user.xp)}</PixelLabel></View>
       </View>
@@ -66,8 +66,8 @@ export default function HomeScreen() {
       </Card> : <StatePanel title="No active vault" message="Create a savings goal to start filling your first vault." />}
 
       <Card accent={bb.colors.violet}>
-        <PixelLabel tone={bb.colors.violet}>✧ NOVA INSIGHT</PixelLabel>
-        <Text style={styles.muted}>Your next recommendation will use your real budget, goals, and recent activity without judgment.</Text>
+        <PixelLabel tone={bb.colors.violet}>✧ NOVA INSIGHT</PixelLabel><PrimaryButton onPress={() => router.push('/coach' as Href)}>ASK NOVA</PrimaryButton>
+        <Text style={styles.muted}>Ask Nova for a plan based on your budget, goals, and recent activity.</Text>
       </Card>
 
       <Card><PixelLabel tone={bb.colors.gold}>PROGRESSION</PixelLabel><Text style={styles.cardTitle}>{Math.round(data.user.xp)} TOTAL XP · {data.user.currentStreak} DAY STREAK</Text><Progress value={xp.progress} tone={bb.colors.gold} /><Text style={styles.muted}>{xp.nextLevelAt == null ? 'Maximum level reached' : `${Math.round(xp.current)} / ${xp.required} XP in this level · next level at ${xp.nextLevelAt}`}</Text></Card>

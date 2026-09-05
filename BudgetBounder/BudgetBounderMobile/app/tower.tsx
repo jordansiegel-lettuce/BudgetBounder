@@ -51,6 +51,7 @@ const knightSprite = require('../assets/images/tower/knight.png');
 const goblinSprite = require('../assets/images/tower/goblin.png');
 
 type GameMode = 'intro' | 'map' | 'playing' | 'result';
+const DEMO_RESULT: TowerSessionResult = { awardedXp: 0, validationState: 'Demo' };
 
 export default function TowerGameScreen() {
   const { user, refreshUser } = useAuth();
@@ -62,6 +63,7 @@ export default function TowerGameScreen() {
   const [dodging, setDodging] = useState(false);
   const [moving, setMoving] = useState(false);
   const [demoUnlocked, setDemoUnlocked] = useState(false);
+  const [runIsDemo, setRunIsDemo] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submission, setSubmission] = useState<TowerSessionResult | null>(null);
   const [pendingUpload, setPendingUpload] = useState<TowerSessionPayload | null>(null);
@@ -71,7 +73,6 @@ export default function TowerGameScreen() {
   const submittedIdRef = useRef<string | null>(null);
   const resultIdRef = useRef(createClientResultId());
   const activeUploadIdRef = useRef<string | null>(null);
-  const runIsDemoRef = useRef(false);
   const attackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dodgeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const moveInputRef = useRef<Vector2>({ x: 0, y: 0 });
@@ -81,6 +82,7 @@ export default function TowerGameScreen() {
     [demoUnlocked, user?.level],
   );
   const runStatus = run?.status;
+  const displayMode = mode === 'playing' && (runStatus === 'victory' || runStatus === 'defeated') ? 'result' : mode;
 
   const beginFloor = useCallback((floor: TowerFloor) => {
     setSelectedFloor(floor);
@@ -97,7 +99,7 @@ export default function TowerGameScreen() {
     lastTickRef.current = Date.now();
     submittedIdRef.current = null;
     activeUploadIdRef.current = null;
-    runIsDemoRef.current = demoUnlocked;
+    setRunIsDemo(demoUnlocked);
     if (attackTimeoutRef.current) clearTimeout(attackTimeoutRef.current);
     if (dodgeTimeoutRef.current) clearTimeout(dodgeTimeoutRef.current);
     resultIdRef.current = createClientResultId();
@@ -124,6 +126,7 @@ export default function TowerGameScreen() {
   const uploadPayload = useCallback(async (payload: TowerSessionPayload) => {
     const uploadId = payload.clientResultId;
     activeUploadIdRef.current = uploadId;
+    setPendingUpload(payload);
     setSubmitting(true);
     setSubmitError('');
     setProfileRefreshError('');
@@ -160,18 +163,13 @@ export default function TowerGameScreen() {
 
   useEffect(() => {
     if (!run || (run.status !== 'victory' && run.status !== 'defeated')) return;
-    setMode('result');
     if (submittedIdRef.current === resultIdRef.current) return;
     submittedIdRef.current = resultIdRef.current;
     const durationSeconds = (Date.now() - run.startedAtMs) / 1000;
     const payload = buildGameSessionPayload(run, durationSeconds, resultIdRef.current);
-    if (runIsDemoRef.current) {
-      setSubmission({ awardedXp: 0, validationState: 'Demo' });
-      return;
-    }
-    setPendingUpload(payload);
+    if (runIsDemo) return;
     void uploadPayload(payload);
-  }, [run, uploadPayload]);
+  }, [run, runIsDemo, uploadPayload]);
 
   const changeMoveInput = useCallback((input: Vector2) => {
     moveInputRef.current = input;
@@ -213,8 +211,8 @@ export default function TowerGameScreen() {
   return (
     <View style={styles.root}>
       <StatusBar hidden />
-      {mode === 'intro' && <Intro onEnter={() => setMode('map')} onClose={() => router.back()} />}
-      {mode === 'map' && (
+      {displayMode === 'intro' && <Intro onEnter={() => setMode('map')} onClose={() => router.back()} />}
+      {displayMode === 'map' && (
         <TowerMap
           access={floorAccess}
           demoUnlocked={demoUnlocked}
@@ -224,7 +222,7 @@ export default function TowerGameScreen() {
           userLevel={user?.level ?? 1}
         />
       )}
-      {mode === 'playing' && run && (
+      {displayMode === 'playing' && run && (
         <PlayScene
           attacking={attacking}
           attackStartedAtMs={attackStartedAtMs}
@@ -239,14 +237,14 @@ export default function TowerGameScreen() {
           run={run}
         />
       )}
-      {mode === 'result' && run && (
+      {displayMode === 'result' && run && (
         <ResultScreen
           floor={selectedFloor}
           onMap={() => setMode('map')}
           onRetry={() => beginFloor(selectedFloor)}
           run={run}
-          isDemo={runIsDemoRef.current}
-          submission={submission}
+          isDemo={runIsDemo}
+          submission={runIsDemo ? DEMO_RESULT : submission}
           onRetryUpload={() => pendingUpload && void uploadPayload(pendingUpload)}
           profileRefreshError={profileRefreshError}
           submitError={submitError}
@@ -414,11 +412,6 @@ function DungeonLootSprite({ item }: { item: DungeonRun['loot'][number] }) {
 
 function VirtualJoystick({ enabled, onChange }: { enabled: boolean; onChange(input: Vector2): void }) {
   const [knob, setKnob] = useState<Vector2>({ x: 0, y: 0 });
-  useEffect(() => {
-    if (enabled) return;
-    setKnob({ x: 0, y: 0 });
-    onChange({ x: 0, y: 0 });
-  }, [enabled, onChange]);
   useEffect(() => () => onChange({ x: 0, y: 0 }), [onChange]);
   const responder = useMemo(() => PanResponder.create({
     onStartShouldSetPanResponder: () => enabled,
@@ -435,7 +428,7 @@ function VirtualJoystick({ enabled, onChange }: { enabled: boolean; onChange(inp
     onPanResponderTerminate: () => { setKnob({ x: 0, y: 0 }); onChange({ x: 0, y: 0 }); },
   }), [enabled, onChange]);
   return <View accessibilityLabel="Movement joystick" style={[styles.joystick, !enabled && styles.controlDisabled]} {...responder.panHandlers}>
-    <View style={[styles.joystickKnob, { transform: [{ translateX: knob.x }, { translateY: knob.y }] }]}><Text style={styles.joystickGlyph}>✥</Text></View>
+    <View style={[styles.joystickKnob, { transform: [{ translateX: enabled ? knob.x : 0 }, { translateY: enabled ? knob.y : 0 }] }]}><Text style={styles.joystickGlyph}>✥</Text></View>
   </View>;
 }
 
@@ -480,7 +473,7 @@ function ResultScreen({ floor, isDemo, onMap, onRetry, onRetryUpload, profileRef
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#050812' }, fill: { flex: 1 },
-  vignette: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(3, 5, 12, 0.40)' },
+  vignette: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(3, 5, 12, 0.40)' },
   introSafe: { flex: 1, alignItems: 'center', paddingHorizontal: 24, paddingVertical: 14 },
   closeButton: { alignSelf: 'flex-end', width: 42, height: 42, borderRadius: 21, backgroundColor: 'rgba(5,8,18,0.78)', borderWidth: 1, borderColor: '#7B8290', alignItems: 'center', justifyContent: 'center' },
   closeText: { color: '#FFF4D6', fontSize: 30, lineHeight: 32 },
@@ -492,7 +485,7 @@ const styles = StyleSheet.create({
   introKnight: { flex: 1, width: '76%', minHeight: 240, marginVertical: -12 },
   heroButton: { width: '100%', minHeight: 54, backgroundColor: '#F2B94B', borderWidth: 3, borderTopColor: '#FFE4A0', borderLeftColor: '#FFE4A0', borderRightColor: '#8A4A12', borderBottomColor: '#8A4A12', borderRadius: 5, alignItems: 'center', justifyContent: 'center', elevation: 8 },
   heroButtonText: { color: '#17100A', fontWeight: '900', letterSpacing: 1.4, fontSize: 13 },
-  mapShade: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(4,7,16,0.78)' },
+  mapShade: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(4,7,16,0.78)' },
   mapHeader: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12 },
   iconButton: { width: 46, height: 46, alignItems: 'center', justifyContent: 'center', backgroundColor: '#151C2C', borderWidth: 1, borderColor: '#66728A', borderRadius: 6 },
   iconButtonText: { color: '#FFF4D6', fontSize: 34, lineHeight: 38 }, headerSpacer: { width: 46 },
@@ -506,7 +499,7 @@ const styles = StyleSheet.create({
   floorSubtitle: { color: '#B8C1D2', fontSize: 11, lineHeight: 15 }, floorBoss: { color: '#78869F', fontSize: 9, fontWeight: '900', letterSpacing: 0.7 }, floorArrow: { color: '#FFF4D6', fontSize: 28 },
   demoButton: { minHeight: 44, borderWidth: 1, borderColor: '#7B6E45', backgroundColor: 'rgba(52,43,20,0.85)', alignItems: 'center', justifyContent: 'center', borderRadius: 4 },
   demoButtonText: { color: '#F2B94B', fontSize: 10, fontWeight: '900', letterSpacing: 0.7 },
-  floorTint: { ...StyleSheet.absoluteFillObject, opacity: 0.10 }, playRoot: { flex: 1, backgroundColor: '#050812' }, playSafe: { flex: 1 },
+  floorTint: { ...StyleSheet.absoluteFill, opacity: 0.10 }, playRoot: { flex: 1, backgroundColor: '#050812' }, playSafe: { flex: 1 },
   hud: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 10, paddingTop: 8 }, hudButton: { width: 40, height: 40, borderRadius: 4, backgroundColor: 'rgba(8,12,23,0.88)', borderWidth: 1, borderColor: '#78869F', alignItems: 'center', justifyContent: 'center' }, hudButtonText: { color: '#FFF4D6', fontWeight: '900', fontSize: 19 },
   hudCenter: { flex: 1, gap: 5 }, hudFloor: { textAlign: 'center', fontSize: 10, fontWeight: '900', letterSpacing: 0.7 },
   progressTrack: { height: 8, backgroundColor: '#111827', borderWidth: 1, borderColor: '#69748A', overflow: 'hidden' }, progressFill: { height: '100%' },
@@ -529,7 +522,7 @@ const styles = StyleSheet.create({
   encounterImage: { width: '115%', height: '115%', zIndex: 2 }, eventShadow: { position: 'absolute', bottom: 0, height: 8, borderRadius: 999, backgroundColor: 'rgba(0,0,0,0.55)' },
   coin: { width: '72%', aspectRatio: 1, borderRadius: 999, backgroundColor: '#F2B94B', borderWidth: 3, borderTopColor: '#FFF0A6', borderLeftColor: '#FFF0A6', borderBottomColor: '#9D5514', borderRightColor: '#9D5514', alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '12deg' }] }, coinText: { color: '#6E3B0A', fontWeight: '900', fontSize: 18 },
   relic: { width: '68%', aspectRatio: 1, backgroundColor: '#66D5E8', borderWidth: 2, borderColor: '#D3FAFF', alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '45deg' }] }, relicText: { color: '#082C3B', fontSize: 18, transform: [{ rotate: '-45deg' }] }, trapText: { color: '#D0D5DF', textShadowColor: '#6A1520', textShadowOffset: { width: 2, height: 3 }, textShadowRadius: 0, transform: [{ rotate: '180deg' }] },
-  pauseOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(4,6,13,0.88)', alignItems: 'center', justifyContent: 'center', padding: 32, gap: 22, zIndex: 20 }, pauseTitle: { color: '#FFF4D6', fontFamily: bb.fonts.display, fontSize: 30, fontWeight: '900' },
+  pauseOverlay: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(4,6,13,0.88)', alignItems: 'center', justifyContent: 'center', padding: 32, gap: 22, zIndex: 20 }, pauseTitle: { color: '#FFF4D6', fontFamily: bb.fonts.display, fontSize: 30, fontWeight: '900' },
   controls: { height: 130, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 8, backgroundColor: 'rgba(5,8,17,0.94)', borderTopWidth: 1, borderTopColor: '#5F697D' },
   joystick: { width: 108, height: 108, borderRadius: 54, backgroundColor: 'rgba(31,42,60,0.90)', borderWidth: 3, borderTopColor: '#7E8BA3', borderLeftColor: '#7E8BA3', borderRightColor: '#0A0F1A', borderBottomColor: '#0A0F1A', alignItems: 'center', justifyContent: 'center' },
   joystickKnob: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#43516A', borderWidth: 2, borderTopColor: '#AAB5C7', borderLeftColor: '#AAB5C7', borderRightColor: '#1A2231', borderBottomColor: '#1A2231', alignItems: 'center', justifyContent: 'center' }, joystickGlyph: { color: '#FFF4D6', fontSize: 21, fontWeight: '900' },
@@ -537,7 +530,7 @@ const styles = StyleSheet.create({
   dodgeButton: { width: 64, height: 64, borderRadius: 32, backgroundColor: '#24475A', borderWidth: 2, borderColor: '#66D5E8', alignItems: 'center', justifyContent: 'center' }, dodgeText: { color: '#BDEFF7', fontSize: 23, lineHeight: 25, transform: [{ rotate: '-35deg' }] },
   attackButton: { width: 82, height: 82, backgroundColor: '#8C261C', borderWidth: 3, borderRadius: 41, alignItems: 'center', justifyContent: 'center' }, attackText: { color: '#FFF4D6', fontSize: 27, lineHeight: 29 }, actionLabel: { color: '#FFD7AE', fontSize: 8, fontWeight: '900', letterSpacing: 1 }, controlPressed: { transform: [{ scale: 0.93 }], opacity: 0.82 },
   controlDisabled: { opacity: 0.45 },
-  resultShade: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(3,5,12,0.68)' }, resultSafe: { flex: 1, alignItems: 'center', paddingHorizontal: 22, paddingVertical: 22, gap: 10 }, resultKicker: { color: '#D6DFEE', fontSize: 11, fontWeight: '900', letterSpacing: 1.7, marginTop: 8 }, resultTitle: { fontFamily: bb.fonts.display, fontSize: 45, lineHeight: 48, fontWeight: '900', letterSpacing: 2, textShadowColor: '#111', textShadowOffset: { width: 4, height: 4 }, textShadowRadius: 0 },
+  resultShade: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(3,5,12,0.68)' }, resultSafe: { flex: 1, alignItems: 'center', paddingHorizontal: 22, paddingVertical: 22, gap: 10 }, resultKicker: { color: '#D6DFEE', fontSize: 11, fontWeight: '900', letterSpacing: 1.7, marginTop: 8 }, resultTitle: { fontFamily: bb.fonts.display, fontSize: 45, lineHeight: 48, fontWeight: '900', letterSpacing: 2, textShadowColor: '#111', textShadowOffset: { width: 4, height: 4 }, textShadowRadius: 0 },
   resultKnight: { flex: 1, minHeight: 220, width: '66%' }, resultKnightDefeated: { transform: [{ rotate: '-7deg' }], opacity: 0.65 },
   resultCard: { width: '100%', flexDirection: 'row', backgroundColor: 'rgba(10,14,26,0.93)', borderWidth: 2, borderColor: '#69748A', paddingVertical: 14 }, resultStat: { flex: 1, alignItems: 'center', gap: 3, borderRightWidth: 1, borderRightColor: '#394459' }, resultValue: { color: '#FFF4D6', fontSize: 24, fontWeight: '900' }, resultLabel: { color: '#8D9AB1', fontSize: 9, fontWeight: '900', letterSpacing: 1 },
   xpNotice: { minHeight: 40, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', flexWrap: 'wrap', gap: 8 }, xpText: { color: '#F2B94B', textAlign: 'center', fontSize: 11, fontWeight: '900' }, errorText: { color: '#FF9AA3', textAlign: 'center', fontSize: 11, lineHeight: 15 }, warningText: { color: '#A9DDEA', textAlign: 'center', fontSize: 10, lineHeight: 14 },

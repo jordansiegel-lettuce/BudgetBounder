@@ -5,7 +5,9 @@ import 'react-native-reanimated';
 import { useEffect } from 'react';
 import { MD3DarkTheme, PaperProvider } from 'react-native-paper';
 import { AuthProvider, useAuth } from '@/src/auth/AuthProvider';
+import { shouldObserveNotifications } from '@/src/reminders/notificationPlatform';
 import { bb } from '@/src/theme/tokens';
+import { Platform } from 'react-native';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -17,7 +19,7 @@ export default function RootLayout() {
     <PaperProvider theme={{ ...MD3DarkTheme, colors: { ...MD3DarkTheme.colors, primary: bb.colors.emerald, surface: bb.colors.surface, onSurface: bb.colors.text, background: bb.colors.canvas } }}>
       <AuthProvider>
         <RootNavigator />
-        <StatusBar style="light" backgroundColor={bb.colors.canvas} />
+        <StatusBar style="light" />
       </AuthProvider>
     </PaperProvider>
   );
@@ -25,6 +27,8 @@ export default function RootLayout() {
 
 function useNotificationObserver() {
   useEffect(() => {
+    if (!shouldObserveNotifications(Platform.OS)) return;
+
     const redirect = (notification: Notifications.Notification) => {
       const url = notification.request.content.data?.url;
       if (typeof url === 'string') router.push(url as Href);
@@ -51,6 +55,7 @@ function RootNavigator() {
           <Stack.Screen name="reminders" options={chromeHeader('Smart reminders')} />
           <Stack.Screen name="create-goal" options={chromeHeader('Create goal')} />
           <Stack.Screen name="contribute-goal" options={chromeHeader('Goal contribution')} />
+          <Stack.Screen name="coach" options={chromeHeader('Financial coach')} />
           <Stack.Screen name="budget" options={chromeHeader('Monthly budget')} />
           <Stack.Screen name="tower" options={{ headerShown: false, gestureEnabled: false }} />
         </Stack.Protected>

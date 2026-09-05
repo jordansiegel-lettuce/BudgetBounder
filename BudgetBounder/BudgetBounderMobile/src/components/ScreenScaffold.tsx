@@ -13,9 +13,12 @@ type ScreenScaffoldProps = PropsWithChildren<{
   action?: ReactNode;
 }>;
 
+function usePalette() {
+  return Colors[useColorScheme() === 'dark' ? 'dark' : 'light'];
+}
+
 export function ScreenScaffold({ title, eyebrow, action, children }: ScreenScaffoldProps) {
-  const colorScheme = useColorScheme() ?? 'light';
-  const palette = Colors[colorScheme];
+  const palette = usePalette();
 
   return (
     <ThemedView style={styles.root}>
@@ -71,8 +74,7 @@ export function Section({
   children,
   trailing,
 }: PropsWithChildren<{ title: string; trailing?: ReactNode }>) {
-  const colorScheme = useColorScheme() ?? 'light';
-  const palette = Colors[colorScheme];
+  const palette = usePalette();
 
   return (
     <View style={[styles.section, { borderColor: palette.bevelDark, backgroundColor: palette.chrome }]}>
@@ -89,8 +91,7 @@ export function Section({
 }
 
 export function Card({ children, style }: PropsWithChildren<{ style?: StyleProp<ViewStyle> }>) {
-  const colorScheme = useColorScheme() ?? 'light';
-  const palette = Colors[colorScheme];
+  const palette = usePalette();
 
   return (
     <View
@@ -108,8 +109,7 @@ export function Card({ children, style }: PropsWithChildren<{ style?: StyleProp<
 }
 
 export function ProgressBar({ progress, color }: { progress: number; color?: string }) {
-  const colorScheme = useColorScheme() ?? 'light';
-  const palette = Colors[colorScheme];
+  const palette = usePalette();
   const clampedProgress = Math.max(0, Math.min(progress, 1));
 
   return (
@@ -125,8 +125,7 @@ export function ProgressBar({ progress, color }: { progress: number; color?: str
 }
 
 export function Pill({ label, tone = 'neutral' }: { label: string; tone?: 'neutral' | 'success' | 'warning' }) {
-  const colorScheme = useColorScheme() ?? 'light';
-  const palette = Colors[colorScheme];
+  const palette = usePalette();
   const color = tone === 'success' ? palette.success : tone === 'warning' ? palette.amber : palette.accent;
 
   return (
@@ -143,8 +142,7 @@ export function HeroPlate({
   subtitle,
   children,
 }: PropsWithChildren<{ title: string; subtitle: string }>) {
-  const colorScheme = useColorScheme() ?? 'light';
-  const palette = Colors[colorScheme];
+  const palette = usePalette();
 
   return (
     <View style={[styles.heroPlate, { backgroundColor: palette.lavender, borderColor: palette.bevelDark }]}>
@@ -159,8 +157,7 @@ export function HeroPlate({
 }
 
 function ChromeDots() {
-  const colorScheme = useColorScheme() ?? 'light';
-  const palette = Colors[colorScheme];
+  const palette = usePalette();
 
   return (
     <View pointerEvents="none" style={styles.backdrop}>
@@ -193,8 +190,7 @@ function HalftoneDots() {
 }
 
 function ChromeCircuit() {
-  const colorScheme = useColorScheme() ?? 'light';
-  const palette = Colors[colorScheme];
+  const palette = usePalette();
 
   return (
     <View pointerEvents="none" style={styles.circuitLayer}>
@@ -386,7 +382,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   backdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   chromeDot: {
     borderRadius: 999,
@@ -395,7 +391,7 @@ const styles = StyleSheet.create({
     width: 3,
   },
   halftone: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 7,
@@ -435,7 +431,7 @@ const styles = StyleSheet.create({
     lineHeight: 17,
   },
   circuitLayer: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     opacity: 0.38,
   },
   circuitLine: {

@@ -33,11 +33,18 @@ namespace BudgetBounder.Api.Controllers
         {
             if (_currentUser.UserId != userId && !_currentUser.IsAdmin) return Forbid();
             StaticMissionService.GenerateStaticMissions(userId, _context);
+            // Streak targets count distinct UTC entry dates, never repeated entries on one day.
+            var activeStreaks = _context.Missions.Where(m => m.UserId == userId && m.MissionType == "DailyStreak" &&
+                m.ReviewStatus == "Approved" && !m.IsCompleted && m.ExpiresAt > DateTime.UtcNow).ToList();
+            foreach (var streak in activeStreaks)
+                streak.CurrentProgress = _context.Transactions.Where(t => t.UserId == userId && t.Type == TransactionType.Expense &&
+                    t.Date >= streak.CreatedAt.Date && t.Date <= DateTime.UtcNow).Select(t => t.Date.Date).Distinct().Count();
+            if (activeStreaks.Count > 0) _context.SaveChanges();
 
             var now = DateTime.UtcNow;
             var completedSince = now.Date;
             var missions = _context.Missions
-                .Where(m => m.UserId == userId &&
+                .Where(m => m.UserId == userId && m.ReviewStatus == "Approved" &&
                             ((!m.IsCompleted && m.ExpiresAt > now) ||
                              (m.IsCompleted && m.CompletedAt >= completedSince)))
                 .OrderBy(m => m.IsCompleted)
@@ -53,15 +60,14 @@ namespace BudgetBounder.Api.Controllers
             var user = _context.Users.FirstOrDefault(u => u.Id == userId);
             if (user == null) return NotFound("User not found");
 
-            // Delete existing incomplete AI missions so re-roll works cleanly
+            // Keep published missions and review history. A pending batch is reused.
             var now = DateTime.UtcNow;
             var existingAiMissions = _context.Missions
-                .Where(m => m.UserId == userId && m.IsAiGenerated && !m.IsCompleted && m.ExpiresAt > now)
+                .Where(m => m.UserId == userId && m.IsAiGenerated && m.ReviewStatus == "Draft" && !m.IsCompleted && m.ExpiresAt > now)
                 .ToList();
             if (existingAiMissions.Count > 0)
             {
-                _context.Missions.RemoveRange(existingAiMissions);
-                _context.SaveChanges();
+                return Ok(new List<Mission>());
             }
 
             var transactions = _context.Transactions
@@ -76,6 +82,7 @@ namespace BudgetBounder.Api.Controllers
                 : "No transactions yet.";
 
             var apiKey = _configuration["Groq:ApiKey"]?.Trim();
+            if (string.IsNullOrWhiteSpace(apiKey)) return StatusCode(503, "Personalized missions are not configured yet.");
 
             var body = new
             {
@@ -89,9 +96,9 @@ namespace BudgetBounder.Api.Controllers
                             "You are a financial mission generator for BudgetBounder, a personal finance app. " +
                             "Return ONLY a valid JSON array with exactly 3 mission objects, no extra text, no markdown, just the raw JSON array. " +
                             "Each object must have: title (string), description (string), difficulty (Easy/Medium/Hard), " +
-                            "xpReward (number between 50-200), missionType (use StayUnderBudget, LogExpenses, or SavingGoal), " +
+                            "xpReward (number between 50-200), missionType (use LogExpenses, LogIncome, or SavingGoal), " +
                             "targetValue (number), durationDays (number). " +
-                            "Make missions specific to the user's spending patterns. Output nothing except the JSON array."
+                            "Targets count logged transactions or savings contributions, not money spent. Duration is 1-30 days. Make missions specific to the user's spending patterns. Never reward spending. Output nothing except the JSON array."
                     },
                     new
                     {
@@ -155,9 +162,15 @@ namespace BudgetBounder.Api.Controllers
                 var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
                 var dtos = JsonSerializer.Deserialize<List<MissionDto>>(rawText, options)
                            ?? throw new Exception("Deserialized to null");
+                if (dtos.Count != 3 || dtos.Any(d => string.IsNullOrWhiteSpace(d.Title) || d.Title.Length > 160 ||
+                    string.IsNullOrWhiteSpace(d.Description) || d.Description.Length > 2000 ||
+                    d.XpReward is < 50 or > 200 || !double.IsFinite(d.TargetValue) || d.TargetValue <= 0 || d.TargetValue > 10000 ||
+                    d.DurationDays is < 1 or > 30 || !new[] { "Easy", "Medium", "Hard" }.Contains(d.Difficulty) ||
+                    !new[] { "LogExpenses", "LogIncome", "SavingGoal" }.Contains(d.MissionType)))
+                    return StatusCode(502, "The AI returned invalid missions. Your existing missions were preserved.");
 
                 now = DateTime.UtcNow;
-                missions = dtos.Select(dto => new Mission
+                missions = dtos.Select((dto, index) => new Mission
                 {
                     UserId = userId,
                     Title = dto.Title,
@@ -168,8 +181,9 @@ namespace BudgetBounder.Api.Controllers
                     TargetValue = dto.TargetValue,
                     CurrentProgress = 0,
                     IsAiGenerated = true,
+                    ReviewStatus = "Draft",
                     CreatedAt = now,
-                    ExpiresAt = now.AddDays(dto.DurationDays > 0 ? dto.DurationDays : 7)
+                    ExpiresAt = now.AddDays(dto.DurationDays).AddMilliseconds(index)
                 }).ToList();
             }
             catch (Exception ex)
@@ -185,10 +199,12 @@ namespace BudgetBounder.Api.Controllers
             }
             catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
             {
-                Console.WriteLine($"Duplicate mission skipped: {ex.InnerException?.Message ?? ex.Message}");
+                Console.WriteLine($"Mission batch could not be saved: {ex.GetType().Name}");
+                return StatusCode(409, "The mission batch could not be saved. Please retry.");
             }
 
-            return Ok(missions);
+            // Draft content is visible only in the administrator review queue.
+            return Ok(new List<Mission>());
         }
 
         [HttpPost("{id}/complete")]
@@ -198,6 +214,9 @@ namespace BudgetBounder.Api.Controllers
             if (mission == null) return NotFound();
             if (_currentUser.UserId != mission.UserId && !_currentUser.IsAdmin) return Forbid();
             if (mission.IsCompleted) return BadRequest("Mission already completed");
+            if (mission.ReviewStatus != "Approved" || mission.ExpiresAt <= DateTime.UtcNow ||
+                mission.TargetValue <= 0 || mission.CurrentProgress < mission.TargetValue)
+                return BadRequest("Mission must be approved, active, and earned before claiming XP.");
 
             mission.IsCompleted = true;
             mission.CompletedAt = DateTime.UtcNow;
@@ -208,8 +227,8 @@ namespace BudgetBounder.Api.Controllers
                 ProgressionService.AwardXp(user, mission.XPReward);
             }
 
-            _context.SaveChanges();
-
+            try { _context.SaveChanges(); }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException) { return Conflict("This mission changed. Reload before claiming."); }
             return Ok(new { mission, xp = user?.XP, level = user?.Level });
         }
     }

@@ -1,7 +1,7 @@
 import { create } from 'axios';
 import Constants from 'expo-constants';
-import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
+import AuthStorage from '@/src/auth/authStorage';
 import { resolveApiUrl } from './apiUrl';
 
 export const API_URL = resolveApiUrl(
@@ -10,16 +10,22 @@ export const API_URL = resolveApiUrl(
   Constants.expoConfig?.hostUri,
 );
 
-const api = create({
-  baseURL: API_URL,
-});
+type TokenStorage = {
+  getItemAsync(key: string): Promise<string | null>;
+};
 
-api.interceptors.request.use(async (config) => {
-  const token = await SecureStore.getItemAsync('budgetbounder.token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+export function createAuthedApi(baseURL: string, storage: TokenStorage) {
+  const client = create({ baseURL });
+
+  client.interceptors.request.use(async (config) => {
+    const token = await storage.getItemAsync('budgetbounder.token');
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+    return config;
+  });
+
+  return client;
+}
+
+const api = createAuthedApi(API_URL, AuthStorage);
 
 export default api;

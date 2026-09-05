@@ -1,6 +1,6 @@
 # BudgetBounder Mobile
 
-BudgetBounder is an Expo SDK 54 React Native finance coach backed by the BudgetBounder C# Web API and SQL Server. It combines budgeting, savings goals, transaction tracking, personalized missions, XP progression, receipt capture, merchant location tagging, and smart reminders.
+BudgetBounder is an Expo SDK 57 React Native finance coach backed by the BudgetBounder C# Web API and SQL Server. It combines budgeting, savings goals, transaction tracking, personalized missions, XP progression, receipt capture, merchant location tagging, and smart reminders.
 
 ## Course requirement coverage
 
@@ -25,8 +25,12 @@ Permissions are requested only after the user initiates a feature. Receipt and l
 
 ```bash
 npm install
-npx expo start
+npm start
 ```
+
+`npm start` and `npm run dev` launch Expo Go over the local network with Expo CLI offline mode. This avoids Expo account prompts and tunnel setup. Offline mode applies to the development CLI, not the app: BudgetBounder can still contact its configured API and AI services. Connect the phone and computer to the same Wi-Fi, then scan the terminal QR code with the phone camera (iOS) or Expo Go (Android). Allow Node.js through Windows Firewall on your private network if the phone cannot connect.
+
+An Expo account and a BudgetBounder account are separate. You still sign in or register inside BudgetBounder to access your financial data. If you use `npm run dev:online` and Expo recommends signing in, choose **Proceed anonymously**. `npm run dev:tunnel` is an optional internet tunnel and may require additional Expo/ngrok setup. Keep Expo Go compatible with SDK 57; do not downgrade the project just to dismiss a login prompt.
 
 The mobile app resolves the API in this order:
 

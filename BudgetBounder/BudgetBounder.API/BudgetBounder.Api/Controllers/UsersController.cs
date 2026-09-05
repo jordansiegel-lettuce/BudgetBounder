@@ -26,9 +26,10 @@ namespace BudgetBounder.Api.Controllers
         }
 
         [HttpGet]
-        public ActionResult<List<User>> GetUsers()
+        [Authorize(Policy = "AdminOnly")]
+        public ActionResult GetUsers()
         {
-            return _context.Users.ToList();
+            return Ok(_context.Users.Select(u => new { u.Id, u.FullName, u.Email, u.Level, u.XP, u.IsActive }).ToList());
         }
 
         [HttpPost("register")]

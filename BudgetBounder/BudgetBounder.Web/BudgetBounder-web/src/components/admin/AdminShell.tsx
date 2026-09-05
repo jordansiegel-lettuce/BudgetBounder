@@ -15,15 +15,15 @@ const items = [
 
 export default function AdminShell() {
   const { user, logout } = useAuth();
-  return <div className="admin-shell">
+  return <div className="admin-shell"><a className="skip-link" href="#main-content">Skip to content</a>
     <aside className="sidebar">
-      <div className="pixel-brand">BB<br />ADMIN</div>
-      <nav>{items.map(([label, to]) => <NavLink key={to} to={to}>{label}</NavLink>)}</nav>
+      <div className="pixel-brand">BUDGET BOUNDER</div><span className="brand-caption">YOUR ADMIN CONSOLE</span>
+      <nav aria-label="Admin navigation">{items.map(([label, to]) => <NavLink key={to} to={to}>{label}</NavLink>)}</nav>
       <button className="ghost-button" onClick={logout}>Sign out</button>
     </aside>
     <div className="admin-stage">
-      <header className="topbar"><span>BudgetBounder Operations</span><div><span className="status-dot" /> API connected <strong>{user?.fullName}</strong></div></header>
-      <main className="admin-content"><Outlet /></main>
+      <header className="topbar"><span>BudgetBounder Operations</span><div><span className="console-label">ADMIN</span> <strong>{user?.fullName}</strong></div></header>
+      <main id="main-content" className="admin-content"><Outlet /></main>
     </div>
   </div>;
 }
