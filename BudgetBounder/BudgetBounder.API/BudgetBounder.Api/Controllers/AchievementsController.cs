@@ -26,6 +26,6 @@ public class AchievementsController(BudgetBounderDbContext db, ICurrentUserServi
         try { await db.SaveChangesAsync(cancellationToken); }
         catch (DbUpdateException) { return Conflict("Achievements are being refreshed. Please retry."); }
         return Ok(await db.UserRewards.AsNoTracking().Where(r => r.UserId == userId && r.RewardDefinition!.IsActive)
-            .Select(r => new { r.Id, r.RewardDefinition!.Name, r.RewardDefinition.Description, r.UnlockedAt }).ToListAsync(cancellationToken));
+            .Select(r => new { r.Id, r.RewardDefinition!.Code, r.RewardDefinition.Name, r.RewardDefinition.Description, r.UnlockedAt }).ToListAsync(cancellationToken));
     }
 }

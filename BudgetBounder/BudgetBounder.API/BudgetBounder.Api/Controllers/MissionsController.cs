@@ -86,7 +86,7 @@ namespace BudgetBounder.Api.Controllers
 
             var body = new
             {
-                model = "llama-3.1-8b-instant",
+                model = "openai/gpt-oss-120b",
                 messages = new[]
                 {
                     new

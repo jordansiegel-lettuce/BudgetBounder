@@ -19,7 +19,7 @@ import {
   type RoomObstacle,
   type Vector2,
 } from '@/src/game/roomGame';
-import { getEnemyMotion, getKnightMotion, getSwordMotion } from '@/src/game/towerAnimation';
+import { getEnemyMotion, getFacing, getKnightMotion, getSwordMotion, getTorchFlicker } from '@/src/game/towerAnimation';
 import {
   submitTowerSession,
   type TowerSessionPayload,
@@ -62,6 +62,7 @@ export default function TowerGameScreen() {
   const [attackStartedAtMs, setAttackStartedAtMs] = useState(0);
   const [dodging, setDodging] = useState(false);
   const [moving, setMoving] = useState(false);
+  const [facing, setFacing] = useState<1 | -1>(1);
   const [demoUnlocked, setDemoUnlocked] = useState(false);
   const [runIsDemo, setRunIsDemo] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -174,6 +175,7 @@ export default function TowerGameScreen() {
   const changeMoveInput = useCallback((input: Vector2) => {
     moveInputRef.current = input;
     setMoving(Math.hypot(input.x, input.y) > 0.08);
+    setFacing(current => getFacing(input.x, current));
   }, []);
 
   const attack = () => {
@@ -227,6 +229,7 @@ export default function TowerGameScreen() {
           attacking={attacking}
           attackStartedAtMs={attackStartedAtMs}
           dodging={dodging}
+          facing={facing}
           floor={selectedFloor}
           onAttack={attack}
           onClose={() => setMode('map')}
@@ -299,14 +302,24 @@ function TowerMap({ access, demoUnlocked, onClose, onDemoToggle, onSelect, userL
             disabled={!unlocked}
             key={floor.id}
             onPress={() => onSelect(floor)}
-            style={({ pressed }) => [styles.floorCard, { borderColor: floor.accent }, !unlocked && styles.floorLocked, pressed && styles.floorPressed]}>
-            <View style={[styles.floorNumber, { backgroundColor: unlocked ? floor.accent : '#384052' }]}><Text style={styles.floorNumberText}>{floor.id}</Text></View>
+            style={({ pressed }) => [styles.floorCard, { borderColor: unlocked ? floor.accent : '#3A4356' }, !unlocked && styles.floorLocked, pressed && styles.floorPressed]}>
+            {unlocked && <View style={[styles.floorAccentBar, { backgroundColor: floor.accent }]} />}
+            {unlocked && <View style={[styles.floorGlow, { backgroundColor: floor.glow }]} />}
+            <View style={[styles.floorNumber, { backgroundColor: unlocked ? floor.accent : '#2C3444', borderColor: unlocked ? '#FFFFFF55' : '#49536833' }]}>
+              <Text style={styles.floorNumberKicker}>FL</Text>
+              <Text style={[styles.floorNumberText, !unlocked && styles.floorNumberTextLocked]}>{floor.id}</Text>
+            </View>
             <View style={styles.floorCopy}>
               <Text style={[styles.floorName, unlocked && { color: floor.accent }]}>{floor.name}</Text>
               <Text style={styles.floorSubtitle}>{unlocked ? floor.subtitle : `Reach finance level ${floor.id} to unlock`}</Text>
-              <Text style={styles.floorBoss}>{unlocked ? `GUARDIAN · ${floor.boss}` : '🔒  SEALED'}</Text>
+              <View style={styles.floorBossRow}>
+                <View style={[styles.floorBossDot, { backgroundColor: unlocked ? floor.accent : '#5A6478' }]} />
+                <Text style={styles.floorBoss}>{unlocked ? `GUARDIAN · ${floor.boss}` : 'SEALED'}</Text>
+              </View>
             </View>
-            <Text style={styles.floorArrow}>{unlocked ? '›' : '◆'}</Text>
+            <View style={[styles.floorArrowWrap, !unlocked && styles.floorArrowLocked]}>
+              <Text style={[styles.floorArrow, !unlocked && styles.floorArrowTextLocked]}>{unlocked ? '›' : '🔒'}</Text>
+            </View>
           </Pressable>
         ))}
         {__DEV__ && <Pressable accessibilityRole="button" onPress={onDemoToggle} style={styles.demoButton}>
@@ -317,10 +330,11 @@ function TowerMap({ access, demoUnlocked, onClose, onDemoToggle, onSelect, userL
   </ImageBackground>;
 }
 
-function PlayScene({ attacking, attackStartedAtMs, dodging, floor, moving, onAttack, onClose, onDodge, onMoveInput, onPause, run }: {
+function PlayScene({ attacking, attackStartedAtMs, dodging, facing, floor, moving, onAttack, onClose, onDodge, onMoveInput, onPause, run }: {
   attacking: boolean;
   attackStartedAtMs: number;
   dodging: boolean;
+  facing: 1 | -1;
   floor: TowerFloor;
   moving: boolean;
   onAttack(): void;
@@ -354,16 +368,22 @@ function PlayScene({ attacking, attackStartedAtMs, dodging, floor, moving, onAtt
       </View>
       <View style={styles.roomFrame}>
         <ImageBackground source={dungeonRoomBackground} resizeMode="stretch" style={styles.roomWorld}>
+          <RoomDecor clockMs={run.clockMs} tone={floor.accent} />
           <View style={[styles.floorTint, { backgroundColor: floor.glow }]} />
           <View style={styles.roomNamePlate}><Text style={styles.roomName}>{room.title.toUpperCase()}</Text><Text style={[styles.roomObjective, roomClear && { color: floor.accent }]}>{roomClear ? 'DOOR OPEN · GO NORTH' : room.kind === 'treasure' ? 'DEFEAT THE GUARD · CLAIM ALL LOOT' : room.enemies.length ? 'DEFEAT EVERY GUARD' : 'FIND THE NORTH DOOR'}</Text></View>
           <View style={[styles.doorSeal, roomClear && styles.doorOpen]}><Text style={styles.doorSealText}>{roomClear ? '▲' : '✦'}</Text></View>
           {room.obstacles.map(obstacle => <RoomObstacleSprite key={obstacle.id} obstacle={obstacle} spikePhase={getSpikePhase(run, obstacle.id)} />)}
           {run.loot.filter(item => !item.collected).map(item => <DungeonLootSprite key={item.id} item={item} />)}
           {run.enemies.filter(item => item.hp > 0).map((item, index) => <DungeonEnemySprite clockMs={run.clockMs} enemy={item} index={index} key={item.id} />)}
-          <View style={[styles.roomKnightWrap, roomPoint(run.hero), { opacity: dodging ? 0.68 : 1, transform: [{ translateY: knightMotion.lift }, { rotate: `${knightMotion.tilt}deg` }, { scale: dodging ? 1.16 : 1 }] }]}>
-            <View style={styles.shadow} />
-            <Image source={knightSprite} contentFit="contain" style={styles.roomKnight} />
-            <View style={[styles.swordArc, { opacity: swordMotion.opacity, transform: [{ rotate: `${swordMotion.rotation}deg` }, { scale: swordMotion.scale }] }]}><Text style={styles.swordGlyph}>⚔</Text></View>
+          <View style={[styles.roomKnightWrap, roomPoint(run.hero), { opacity: dodging ? 0.68 : 1, transform: [{ translateX: swordMotion.lunge * facing }, { translateY: knightMotion.lift }, { rotate: `${knightMotion.tilt * facing}deg` }, { scale: dodging ? 1.16 : 1 }] }]}>
+            <View style={[styles.shadow, { transform: [{ scaleX: 1 - knightMotion.stride * 0.22 }], opacity: 0.58 - knightMotion.stride * 0.16 }]} />
+            {moving && <FootfallDust stride={knightMotion.stride} />}
+            <Image
+              source={knightSprite}
+              contentFit="contain"
+              style={[styles.roomKnight, { transform: [{ scaleX: knightMotion.scaleX * facing }, { scaleY: knightMotion.scaleY }] }]}
+            />
+            <SlashEffect facing={facing} pose={swordMotion} tone={floor.accent} />
           </View>
           {run.status === 'paused' && <View style={styles.pauseOverlay}><Text style={styles.pauseTitle}>TOWER PAUSED</Text><Pressable onPress={onPause} style={styles.heroButton}><Text style={styles.heroButtonText}>RESUME EXPLORING</Text></Pressable></View>}
         </ImageBackground>
@@ -379,6 +399,75 @@ function PlayScene({ attacking, attackStartedAtMs, dodging, floor, moving, onAtt
   </View>;
 }
 
+/**
+ * The room background is already a fully painted scene with its own torches and
+ * stonework, so this stays deliberately light: a warm flicker over the whole
+ * chamber to suggest firelight, and a vignette to seat the edges. Anything more
+ * competes with the artwork instead of supporting it.
+ */
+function RoomDecor({ clockMs, tone }: { clockMs: number; tone: string }) {
+  const flicker = getTorchFlicker(clockMs, 1);
+  return (
+    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+      <View style={[styles.roomFirelight, { backgroundColor: tone, opacity: 0.05 + flicker * 0.05 }]} />
+      <View style={styles.roomVignetteTop} />
+      <View style={styles.roomVignetteBottom} />
+    </View>
+  );
+}
+
+/**
+ * The strike used to be a rotating "⚔" glyph, which read as a spinning icon
+ * rather than a swing. This draws an actual blade sweeping through an arc,
+ * with lagging motion ghosts behind it and a spark where it connects.
+ */
+function SlashEffect({ facing, pose, tone }: { facing: 1 | -1; pose: ReturnType<typeof getSwordMotion>; tone: string }) {
+  if (pose.opacity <= 0) return null;
+  const ghosts = [14, 27, 41];
+  return (
+    <View pointerEvents="none" style={[styles.slashLayer, facing === -1 && styles.slashLayerFlipped]}>
+      {ghosts.map((lag, index) => (
+        <View
+          key={lag}
+          style={[
+            styles.slashArc,
+            {
+              borderTopColor: tone,
+              borderRightColor: tone,
+              opacity: pose.opacity * pose.trail * (0.34 - index * 0.09),
+              transform: [{ rotate: `${pose.rotation - lag}deg` }, { scale: pose.scale * (1 - index * 0.05) }],
+            },
+          ]}
+        />
+      ))}
+      <View style={[styles.slashArc, styles.slashArcLead, { opacity: pose.opacity, transform: [{ rotate: `${pose.rotation}deg` }, { scale: pose.scale }] }]} />
+      <View style={[styles.bladeWrap, { opacity: pose.opacity, transform: [{ rotate: `${pose.rotation}deg` }, { scale: pose.scale }] }]}>
+        <View style={styles.bladeTip} />
+        <View style={styles.blade} />
+        <View style={styles.bladeGuard} />
+        <View style={styles.bladeGrip} />
+      </View>
+      {pose.flash > 0 && (
+        <View style={[styles.impactFlash, { borderColor: tone, opacity: pose.flash, transform: [{ scale: 0.6 + pose.flash * 0.8 }] }]}>
+          <View style={[styles.impactCore, { backgroundColor: tone }]} />
+        </View>
+      )}
+    </View>
+  );
+}
+
+/** Small puffs kicked up as each foot lands, so the walk has weight. */
+function FootfallDust({ stride }: { stride: number }) {
+  const strength = 1 - stride;
+  if (strength < 0.45) return null;
+  return (
+    <View pointerEvents="none" style={styles.dustRow}>
+      <View style={[styles.dustPuff, { opacity: strength * 0.5, transform: [{ scale: 0.5 + strength * 0.7 }] }]} />
+      <View style={[styles.dustPuff, styles.dustPuffFar, { opacity: strength * 0.32, transform: [{ scale: 0.4 + strength * 0.5 }] }]} />
+    </View>
+  );
+}
+
 function roomPoint(point: Vector2) {
   return { left: `${7 + point.x * 86}%` as const, top: `${15 + point.y * 78}%` as const };
 }
@@ -390,8 +479,41 @@ function RoomObstacleSprite({ obstacle, spikePhase }: { obstacle: RoomObstacle; 
     width: `${obstacle.width * 86}%` as const,
     height: `${obstacle.height * 78}%` as const,
   };
-  if (obstacle.kind === 'spikes') return <View style={[styles.roomObstacle, styles.spikes, spikePhase === 'warning' && styles.spikesWarning, spikePhase === 'active' && styles.spikesActive, box]}><Text style={[styles.spikesText, spikePhase === 'active' && styles.spikesTextActive]}>{spikePhase === 'active' ? '▲ ▲ ▲' : '·  ·  ·'}</Text></View>;
-  return <View style={[styles.roomObstacle, obstacle.kind === 'crate' ? styles.crate : styles.pillar, box]}><Text style={styles.obstacleGlyph}>{obstacle.kind === 'crate' ? '×' : '◆'}</Text></View>;
+  if (obstacle.kind === 'spikes') {
+    // Real blades that rise out of the floor, rather than a row of triangles in text.
+    return (
+      <View style={[styles.roomObstacle, styles.spikes, spikePhase === 'warning' && styles.spikesWarning, spikePhase === 'active' && styles.spikesActive, box]}>
+        <View style={styles.spikeRow}>
+          {Array.from({ length: 5 }, (_, index) => (
+            <View
+              key={index}
+              style={[
+                styles.spikeBlade,
+                spikePhase === 'active' && styles.spikeBladeActive,
+                spikePhase === 'warning' && styles.spikeBladeWarning,
+              ]}
+            />
+          ))}
+        </View>
+      </View>
+    );
+  }
+  if (obstacle.kind === 'crate') {
+    return (
+      <View style={[styles.roomObstacle, styles.crate, box]}>
+        <View style={styles.cratePlank} />
+        <View style={styles.crateBandVertical} />
+        <View style={styles.crateCorner} />
+      </View>
+    );
+  }
+  return (
+    <View style={[styles.roomObstacle, styles.pillar, box]}>
+      <View style={styles.pillarCap} />
+      <View style={styles.pillarShaft} />
+      <View style={styles.pillarBase} />
+    </View>
+  );
 }
 
 function DungeonEnemySprite({ clockMs, enemy, index }: { clockMs: number; enemy: DungeonRun['enemies'][number]; index: number }) {
@@ -399,8 +521,12 @@ function DungeonEnemySprite({ clockMs, enemy, index }: { clockMs: number; enemy:
   const motion = getEnemyMotion(clockMs, index);
   return <View style={[styles.roomEnemy, roomPoint(enemy), { width: size, height: size, marginLeft: -size / 2, marginTop: -size * 0.68, transform: [{ translateY: motion.lift }, { rotate: `${motion.tilt}deg` }] }]}>
     <View style={styles.enemyHpTrack}><View style={[styles.enemyHpFill, { width: `${enemy.hp / enemy.maxHp * 100}%` }]} /></View>
-    <View style={[styles.eventShadow, { width: size * 0.7 }]} />
-    <Image source={goblinSprite} contentFit="contain" style={styles.encounterImage} />
+    <View style={[styles.eventShadow, { width: size * 0.7, transform: [{ scaleX: 1 - motion.stride * 0.2 }] }]} />
+    <Image
+      source={goblinSprite}
+      contentFit="contain"
+      style={[styles.encounterImage, { transform: [{ scaleX: motion.scaleX }, { scaleY: motion.scaleY }] }]}
+    />
   </View>;
 }
 
@@ -492,11 +618,23 @@ const styles = StyleSheet.create({
   mapTitleWrap: { flex: 1, alignItems: 'center', gap: 3 }, mapKicker: { color: '#F2B94B', fontSize: 10, fontWeight: '900', letterSpacing: 1.4 },
   mapTitle: { color: '#FFF4D6', fontFamily: bb.fonts.display, fontSize: 22, fontWeight: '900', letterSpacing: 0.8 },
   floorList: { paddingHorizontal: 16, paddingBottom: 28, gap: 10 },
-  floorCard: { minHeight: 92, backgroundColor: 'rgba(12,17,31,0.94)', borderWidth: 2, borderRadius: 7, flexDirection: 'row', alignItems: 'center', gap: 12, padding: 11 },
-  floorLocked: { opacity: 0.62, borderColor: '#4A5160' }, floorPressed: { transform: [{ scale: 0.985 }] },
-  floorNumber: { width: 48, height: 58, borderRadius: 4, alignItems: 'center', justifyContent: 'center' }, floorNumberText: { color: '#12131A', fontSize: 27, fontWeight: '900' },
+  floorCard: { minHeight: 96, backgroundColor: 'rgba(12,17,31,0.94)', borderWidth: 2, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 12, padding: 11, paddingLeft: 15, overflow: 'hidden' },
+  floorAccentBar: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 4 },
+  floorGlow: { position: 'absolute', left: 0, top: 0, bottom: 0, width: '38%', opacity: 0.16 },
+  floorLocked: { opacity: 0.55 }, floorPressed: { transform: [{ scale: 0.985 }] },
+  floorNumber: { width: 50, height: 60, borderRadius: 5, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  floorNumberKicker: { color: '#12131A', fontSize: 8, fontWeight: '900', letterSpacing: 1, opacity: 0.65 },
+  floorNumberText: { color: '#12131A', fontSize: 26, lineHeight: 29, fontWeight: '900' },
+  floorNumberTextLocked: { color: '#8A94A8' },
   floorCopy: { flex: 1, gap: 4 }, floorName: { color: '#AEB6C5', fontSize: 16, fontWeight: '900', textTransform: 'uppercase' },
-  floorSubtitle: { color: '#B8C1D2', fontSize: 11, lineHeight: 15 }, floorBoss: { color: '#78869F', fontSize: 9, fontWeight: '900', letterSpacing: 0.7 }, floorArrow: { color: '#FFF4D6', fontSize: 28 },
+  floorSubtitle: { color: '#B8C1D2', fontSize: 11, lineHeight: 15 },
+  floorBossRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  floorBossDot: { width: 6, height: 6, borderRadius: 3 },
+  floorBoss: { color: '#78869F', fontSize: 9, fontWeight: '900', letterSpacing: 0.7 },
+  floorArrowWrap: { width: 30, height: 30, borderRadius: 15, borderWidth: 1, borderColor: '#4E5A71', alignItems: 'center', justifyContent: 'center' },
+  floorArrowLocked: { borderColor: 'transparent' },
+  floorArrow: { color: '#FFF4D6', fontSize: 22, lineHeight: 25 },
+  floorArrowTextLocked: { fontSize: 13, lineHeight: 16 },
   demoButton: { minHeight: 44, borderWidth: 1, borderColor: '#7B6E45', backgroundColor: 'rgba(52,43,20,0.85)', alignItems: 'center', justifyContent: 'center', borderRadius: 4 },
   demoButtonText: { color: '#F2B94B', fontSize: 10, fontWeight: '900', letterSpacing: 0.7 },
   floorTint: { ...StyleSheet.absoluteFill, opacity: 0.10 }, playRoot: { flex: 1, backgroundColor: '#050812' }, playSafe: { flex: 1 },
@@ -512,11 +650,43 @@ const styles = StyleSheet.create({
   doorSeal: { position: 'absolute', zIndex: 4, top: '13%', left: '50%', width: 54, height: 25, marginLeft: -27, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(91,24,33,0.90)', borderWidth: 2, borderColor: '#EC6A61', borderRadius: 4 },
   doorOpen: { backgroundColor: 'rgba(34,86,74,0.90)', borderColor: '#78E1B3' }, doorSealText: { color: '#FFF4D6', fontSize: 15, fontWeight: '900' },
   roomKnightWrap: { position: 'absolute', zIndex: 8, width: 78, height: 90, marginLeft: -39, marginTop: -62, alignItems: 'center', justifyContent: 'flex-end' },
-  roomKnight: { width: 78, height: 90, zIndex: 2 }, shadow: { position: 'absolute', bottom: 6, width: 52, height: 12, borderRadius: 999, backgroundColor: 'rgba(0,0,0,0.58)' }, swordArc: { position: 'absolute', zIndex: 4, right: -27, top: 22, width: 62, height: 62, alignItems: 'flex-end', justifyContent: 'flex-start', transformOrigin: 'left bottom' }, swordGlyph: { color: '#FFF4D6', fontSize: 33, lineHeight: 38, textShadowColor: '#F2B94B', textShadowOffset: { width: 2, height: 2 }, textShadowRadius: 2 },
+  roomKnight: { width: 78, height: 90, zIndex: 2 },
+  shadow: { position: 'absolute', bottom: 6, width: 52, height: 12, borderRadius: 999, backgroundColor: 'rgba(0,0,0,0.58)' },
+  dustRow: { position: 'absolute', bottom: 4, zIndex: 1, flexDirection: 'row', alignItems: 'flex-end', gap: 7 },
+  dustPuff: { width: 13, height: 6, borderRadius: 999, backgroundColor: 'rgba(196,206,224,0.75)' },
+  dustPuffFar: { width: 8, height: 4 },
+  slashLayer: { position: 'absolute', zIndex: 6, right: 2, top: 26, width: 1, height: 1, alignItems: 'center', justifyContent: 'center' },
+  slashLayerFlipped: { right: undefined, left: 2, transform: [{ scaleX: -1 }] },
+  slashArc: { position: 'absolute', width: 82, height: 82, marginLeft: -41, marginTop: -41, borderRadius: 41, borderWidth: 7, borderColor: 'transparent', borderTopColor: '#FFF4D6', borderRightColor: '#F2B94B' },
+  slashArcLead: { borderWidth: 8, borderTopColor: '#FFFDF3', borderRightColor: '#FFF4D6' },
+  bladeWrap: { position: 'absolute', width: 62, height: 62, marginLeft: -31, marginTop: -31, alignItems: 'center', justifyContent: 'flex-start' },
+  bladeTip: { width: 0, height: 0, borderLeftWidth: 5, borderRightWidth: 5, borderBottomWidth: 11, borderLeftColor: 'transparent', borderRightColor: 'transparent', borderBottomColor: '#FFFDF3', transform: [{ rotate: '180deg' }] },
+  blade: { width: 10, height: 34, backgroundColor: '#EEF3FF', borderLeftWidth: 2, borderLeftColor: '#FFFFFF', borderRightWidth: 2, borderRightColor: '#8C9AB8' },
+  bladeGuard: { width: 26, height: 6, borderRadius: 2, backgroundColor: '#F2B94B', borderTopWidth: 1, borderTopColor: '#FFE4A0' },
+  bladeGrip: { width: 7, height: 13, borderRadius: 2, backgroundColor: '#6E3B0A' },
+  impactFlash: { position: 'absolute', width: 46, height: 46, marginLeft: 8, marginTop: -6, borderRadius: 23, borderWidth: 3, alignItems: 'center', justifyContent: 'center' },
+  impactCore: { width: 16, height: 16, borderRadius: 8, opacity: 0.9 },
+  roomFirelight: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 },
+  roomVignetteTop: { position: 'absolute', left: 0, right: 0, top: 0, height: '14%', backgroundColor: 'rgba(4,7,15,0.38)' },
+  roomVignetteBottom: { position: 'absolute', left: 0, right: 0, bottom: 0, height: '10%', backgroundColor: 'rgba(4,7,15,0.32)' },
   roomObstacle: { position: 'absolute', zIndex: 3, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  pillar: { backgroundColor: 'rgba(42,51,68,0.94)', borderWidth: 2, borderTopColor: '#8792A4', borderLeftColor: '#737F93', borderRightColor: '#171E2B', borderBottomColor: '#111724', borderRadius: 5 },
-  crate: { backgroundColor: 'rgba(92,53,32,0.95)', borderWidth: 2, borderTopColor: '#D09053', borderLeftColor: '#B27645', borderRightColor: '#402415', borderBottomColor: '#321B10', borderRadius: 3 },
-  spikes: { backgroundColor: 'rgba(54,20,28,0.42)', borderWidth: 1, borderColor: 'rgba(117,77,84,0.70)' }, spikesWarning: { backgroundColor: 'rgba(202,126,32,0.48)', borderColor: '#F2B94B' }, spikesActive: { backgroundColor: 'rgba(150,20,34,0.86)', borderColor: '#FF7D82', transform: [{ scale: 1.03 }] }, spikesText: { color: '#C9934B', fontSize: 15, fontWeight: '900', letterSpacing: 1 }, spikesTextActive: { color: '#FFF4D6', fontSize: 12, letterSpacing: -2, textShadowColor: '#8A111D', textShadowOffset: { width: 1, height: 2 }, textShadowRadius: 0 }, obstacleGlyph: { color: '#D6DBE4', fontSize: 18, fontWeight: '900', opacity: 0.82 },
+  // Obstacles sit on top of painted artwork, so they stay translucent and take
+  // their form from lit and shadowed edges rather than from a solid fill.
+  pillar: { backgroundColor: 'rgba(26,33,48,0.62)', borderWidth: 2, borderTopColor: 'rgba(163,177,199,0.75)', borderLeftColor: 'rgba(126,140,163,0.6)', borderRightColor: 'rgba(9,13,22,0.75)', borderBottomColor: 'rgba(6,9,16,0.8)', borderRadius: 6 },
+  crate: { backgroundColor: 'rgba(74,42,24,0.72)', borderWidth: 2, borderTopColor: 'rgba(214,150,88,0.8)', borderLeftColor: 'rgba(178,118,69,0.7)', borderRightColor: 'rgba(46,26,15,0.8)', borderBottomColor: 'rgba(36,20,11,0.85)', borderRadius: 3 },
+  spikes: { backgroundColor: 'rgba(54,20,28,0.42)', borderWidth: 1, borderColor: 'rgba(117,77,84,0.70)' },
+  spikesWarning: { backgroundColor: 'rgba(202,126,32,0.48)', borderColor: '#F2B94B' },
+  spikesActive: { backgroundColor: 'rgba(150,20,34,0.86)', borderColor: '#FF7D82', transform: [{ scale: 1.03 }] },
+  spikeRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-evenly', width: '100%', height: '100%', paddingBottom: 2 },
+  spikeBlade: { width: 0, height: 0, borderLeftWidth: 5, borderRightWidth: 5, borderBottomWidth: 7, borderLeftColor: 'transparent', borderRightColor: 'transparent', borderBottomColor: '#6E5A44' },
+  spikeBladeWarning: { borderBottomWidth: 11, borderBottomColor: '#F2B94B' },
+  spikeBladeActive: { borderBottomWidth: 20, borderBottomColor: '#FFF4D6' },
+  cratePlank: { position: 'absolute', left: 0, right: 0, height: 2, backgroundColor: 'rgba(255,214,150,0.35)' },
+  crateBandVertical: { position: 'absolute', top: 0, bottom: 0, width: 2, backgroundColor: 'rgba(255,214,150,0.28)' },
+  crateCorner: { width: '58%', height: '58%', borderWidth: 2, borderColor: 'rgba(255,214,150,0.30)', borderRadius: 2 },
+  pillarCap: { position: 'absolute', top: 0, left: 0, right: 0, height: '16%', backgroundColor: 'rgba(140,153,175,0.55)' },
+  pillarShaft: { flex: 1, width: '58%', borderLeftWidth: 2, borderLeftColor: 'rgba(196,208,228,0.28)', borderRightWidth: 2, borderRightColor: 'rgba(10,15,25,0.42)' },
+  pillarBase: { position: 'absolute', bottom: 0, left: 0, right: 0, height: '13%', backgroundColor: 'rgba(96,107,125,0.55)' },
   roomEnemy: { position: 'absolute', zIndex: 7, alignItems: 'center', justifyContent: 'flex-end' }, enemyHpTrack: { position: 'absolute', zIndex: 4, top: 0, width: '74%', height: 5, backgroundColor: '#25090E', borderWidth: 1, borderColor: '#090B10' }, enemyHpFill: { height: '100%', backgroundColor: '#EC6A61' },
   roomLoot: { position: 'absolute', zIndex: 5, width: 40, height: 40, marginLeft: -20, marginTop: -20, alignItems: 'center', justifyContent: 'center' },
   encounterImage: { width: '115%', height: '115%', zIndex: 2 }, eventShadow: { position: 'absolute', bottom: 0, height: 8, borderRadius: 999, backgroundColor: 'rgba(0,0,0,0.55)' },
