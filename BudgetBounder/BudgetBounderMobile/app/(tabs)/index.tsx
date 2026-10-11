@@ -6,11 +6,23 @@ import type { DashboardResponse } from '@/src/types/api';
 import { getXpProgress } from '@/src/progression/xpProgress';
 import { router, type Href, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+
+type EarnedBadge = { id: number; code: string; name: string; description: string; unlockedAt: string };
+
+/** Each reward code gets its own mark so badges are recognisable at a glance. */
+const BADGE_ICONS: Record<string, string> = {
+  'first-entry': '✎',
+  'first-mission': '⚑',
+  'first-vault': '🏦',
+  'level-five': '★',
+  'tower-explorer': '⚔',
+};
 
 export default function HomeScreen() {
   const { user } = useAuth();
   const [data, setData] = useState<DashboardResponse | null>(null);
+  const [badges, setBadges] = useState<EarnedBadge[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -25,7 +37,16 @@ export default function HomeScreen() {
       setLoading(false);
     }
   }, []);
-  useFocusEffect(useCallback(() => { void load(); }, [load]));
+  // Badges are a secondary flourish: if the sync fails the dashboard still renders.
+  const loadBadges = useCallback(async () => {
+    try {
+      const response = await api.post<EarnedBadge[]>('/achievements/sync');
+      setBadges(response.data);
+    } catch {
+      setBadges([]);
+    }
+  }, []);
+  useFocusEffect(useCallback(() => { void load(); void loadBadges(); }, [load, loadBadges]));
 
   if (loading) return <View style={styles.center}><ActivityIndicator color={bb.colors.emerald} size="large" /><Text style={styles.muted}>Preparing your next move…</Text></View>;
   if (error || !data) return <Screen><StatePanel title="Connection interrupted" message={error} action={<PrimaryButton onPress={load}>TRY AGAIN</PrimaryButton>} /></Screen>;
@@ -38,8 +59,30 @@ export default function HomeScreen() {
           <Text style={styles.title}>GOOD MORNING, {(data.user.fullName || user?.fullName || 'PLAYER').split(' ')[0].toUpperCase()}</Text>
           <Text style={styles.muted}>Your budget and activity for this month.</Text>
         </View>
-        <View style={styles.level}><PixelLabel>LV {data.user.level} · ✦ {Math.round(data.user.xp)}</PixelLabel></View>
+        <LevelCrest level={data.user.level} progress={xp.progress} xp={data.user.xp} />
       </View>
+
+      <Card accent={bb.colors.gold}>
+        <View style={styles.levelRow}>
+          <View style={styles.flex}>
+            <PixelLabel tone={bb.colors.gold}>FINANCE LEVEL {data.user.level}</PixelLabel>
+            <Text style={styles.levelHeadline}>{Math.round(data.user.xp)} XP · {data.user.currentStreak} DAY STREAK</Text>
+          </View>
+          <View style={styles.streakChip}><Text style={styles.streakFlame}>🔥</Text><Text style={styles.streakCount}>{data.user.currentStreak}</Text></View>
+        </View>
+        <View style={styles.xpBarRow}>
+          <Text style={styles.levelTick}>LV {data.user.level}</Text>
+          <View style={styles.xpBarFlex}><Progress value={xp.progress} tone={bb.colors.gold} /></View>
+          <Text style={styles.levelTick}>LV {xp.nextLevelAt == null ? 'MAX' : data.user.level + 1}</Text>
+        </View>
+        <Text style={styles.muted}>
+          {xp.nextLevelAt == null
+            ? 'Maximum level reached — you have mastered the tower.'
+            : `${Math.round(xp.required - xp.current)} XP to level ${data.user.level + 1}`}
+        </Text>
+      </Card>
+
+      <BadgeShelf badges={badges} />
 
       <Card accent={bb.colors.emerald}>
         <View style={styles.summaryRow}><View style={styles.icon}><Text style={styles.iconText}>✦</Text></View><View style={styles.flex}>
@@ -70,8 +113,61 @@ export default function HomeScreen() {
         <Text style={styles.muted}>Ask Nova for a plan based on your budget, goals, and recent activity.</Text>
       </Card>
 
-      <Card><PixelLabel tone={bb.colors.gold}>PROGRESSION</PixelLabel><Text style={styles.cardTitle}>{Math.round(data.user.xp)} TOTAL XP · {data.user.currentStreak} DAY STREAK</Text><Progress value={xp.progress} tone={bb.colors.gold} /><Text style={styles.muted}>{xp.nextLevelAt == null ? 'Maximum level reached' : `${Math.round(xp.current)} / ${xp.required} XP in this level · next level at ${xp.nextLevelAt}`}</Text></Card>
     </Screen>
+  );
+}
+
+/**
+ * The level used to be a small text chip. This gives it the weight of an
+ * earned rank: a medallion whose ring fills as XP accumulates toward the
+ * next level, so progress is visible without reading a number.
+ */
+function LevelCrest({ level, progress, xp }: { level: number; progress: number; xp: number }) {
+  const filled = Math.round(Math.max(0, Math.min(1, progress)) * 12);
+  return (
+    <View accessibilityLabel={`Finance level ${level}, ${Math.round(xp)} XP`} style={styles.crest}>
+      <View style={styles.crestRing}>
+        {Array.from({ length: 12 }, (_, index) => (
+          <View
+            key={index}
+            style={[
+              styles.crestPip,
+              { transform: [{ rotate: `${index * 30}deg` }, { translateY: -25 }] },
+              index < filled && styles.crestPipFilled,
+            ]}
+          />
+        ))}
+        <View style={styles.crestCore}>
+          <Text style={styles.crestKicker}>LEVEL</Text>
+          <Text style={styles.crestLevel}>{level}</Text>
+        </View>
+      </View>
+      <Text style={styles.crestXp}>✦ {Math.round(xp)}</Text>
+    </View>
+  );
+}
+
+/** Earned achievement badges, surfaced on the home screen rather than buried in Profile. */
+function BadgeShelf({ badges }: { badges: EarnedBadge[] }) {
+  return (
+    <Card accent={bb.colors.violet}>
+      <View style={styles.badgeHeader}>
+        <PixelLabel tone={bb.colors.violet}>ACHIEVEMENT BADGES</PixelLabel>
+        <Text style={styles.badgeCount}>{badges.length} EARNED</Text>
+      </View>
+      {badges.length ? (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.badgeRow}>
+          {badges.map(badge => (
+            <View key={badge.id} style={styles.badge}>
+              <View style={styles.badgeMedal}><Text style={styles.badgeIcon}>{BADGE_ICONS[badge.code] ?? '✦'}</Text></View>
+              <Text numberOfLines={2} style={styles.badgeName}>{badge.name}</Text>
+            </View>
+          ))}
+        </ScrollView>
+      ) : (
+        <Text style={styles.muted}>Log an expense, finish a quest or clear a tower floor to earn your first badge.</Text>
+      )}
+    </Card>
   );
 }
 
@@ -81,7 +177,29 @@ const styles = StyleSheet.create({
   flex: { flex: 1, gap: 10 },
   title: { color: bb.colors.title, fontFamily: bb.fonts.display, fontWeight: '900', fontSize: 24, lineHeight: 28, textShadowColor: bb.colors.border, textShadowOffset: { width: 2, height: 2 }, textShadowRadius: 2 },
   muted: { color: bb.colors.muted, fontSize: 13, lineHeight: 20 },
-  level: { paddingHorizontal: 10, paddingVertical: 8, backgroundColor: bb.colors.gold, borderTopColor: '#FFE2A6', borderLeftColor: '#FFE2A6', borderRightColor: bb.colors.navGold, borderBottomColor: bb.colors.navGold, borderWidth: 2, borderRadius: bb.radius.sm },
+  crest: { alignItems: 'center', gap: 4 },
+  crestRing: { width: 66, height: 66, borderRadius: 33, alignItems: 'center', justifyContent: 'center', backgroundColor: bb.colors.raised, borderWidth: 2, borderColor: bb.colors.border },
+  crestPip: { position: 'absolute', width: 4, height: 8, borderRadius: 2, backgroundColor: bb.colors.chromeSoft },
+  crestPipFilled: { backgroundColor: bb.colors.gold },
+  crestCore: { width: 42, height: 42, borderRadius: 21, backgroundColor: bb.colors.gold, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderTopColor: '#FFE2A6', borderLeftColor: '#FFE2A6', borderRightColor: bb.colors.navGold, borderBottomColor: bb.colors.navGold },
+  crestKicker: { color: '#6E3B0A', fontSize: 7, fontWeight: '900', letterSpacing: 0.8 },
+  crestLevel: { color: '#3A1F05', fontSize: 20, lineHeight: 22, fontWeight: '900' },
+  crestXp: { color: bb.colors.navGold, fontSize: 11, fontWeight: '900' },
+  levelRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  levelHeadline: { color: bb.colors.text, fontFamily: bb.fonts.display, fontWeight: '900', fontSize: 15, textTransform: 'uppercase' },
+  streakChip: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 9, paddingVertical: 6, borderRadius: bb.radius.sm, backgroundColor: bb.colors.raised, borderWidth: 1, borderColor: bb.colors.border },
+  streakFlame: { fontSize: 14 },
+  streakCount: { color: bb.colors.title, fontWeight: '900', fontSize: 14 },
+  xpBarRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  xpBarFlex: { flex: 1 },
+  levelTick: { color: bb.colors.muted, fontSize: 9, fontWeight: '900', letterSpacing: 0.6 },
+  badgeHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
+  badgeCount: { color: bb.colors.violet, fontSize: 10, fontWeight: '900', letterSpacing: 0.8 },
+  badgeRow: { gap: 12, paddingVertical: 2, paddingRight: 4 },
+  badge: { width: 74, alignItems: 'center', gap: 6 },
+  badgeMedal: { width: 50, height: 50, borderRadius: 25, alignItems: 'center', justifyContent: 'center', backgroundColor: bb.colors.raised, borderWidth: 2, borderColor: bb.colors.violet },
+  badgeIcon: { color: bb.colors.violet, fontSize: 22, lineHeight: 26 },
+  badgeName: { color: bb.colors.text, fontSize: 9, lineHeight: 12, fontWeight: '900', textAlign: 'center', textTransform: 'uppercase' },
   summaryRow: { flexDirection: 'row', gap: 14, alignItems: 'center' },
   icon: { width: 54, height: 54, borderRadius: bb.radius.md, borderWidth: 1, borderColor: bb.colors.emerald, alignItems: 'center', justifyContent: 'center', backgroundColor: bb.colors.raised },
   iconText: { color: bb.colors.emerald, fontSize: 26 },
