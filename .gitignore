@@ -15,7 +15,7 @@ build/
 # Env files
 .env
 .env.*
-
+.dockerpass.txt
 # Logs
 *.log
 npm-debug.log*
