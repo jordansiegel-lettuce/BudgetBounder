@@ -12,6 +12,8 @@ export default function Users() {
     return () => controller.abort();
   }, [query]);
   async function toggle(user: AdminUser) {
+    const prompt = user.isActive ? `Freeze ${user.fullName}? They will be signed out and blocked until restored.` : `Restore access for ${user.fullName}?`;
+    if (!window.confirm(prompt)) return;
     setBusy(true); setError('');
     try { await api.patch('/admin/users/' + user.id + '/status', { isActive: !user.isActive }); setQuery(q => ({ ...q, revision: q.revision + 1 })); }
     catch { setError('The account status was not changed.'); } finally { setBusy(false); }

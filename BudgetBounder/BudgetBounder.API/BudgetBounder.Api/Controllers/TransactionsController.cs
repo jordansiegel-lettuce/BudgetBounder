@@ -34,8 +34,8 @@ namespace BudgetBounder.Api.Controllers
         public ActionResult<Transaction> ReceiveTransaction(Transaction transaction)
         {
             if (_currentUser.UserId is not int userId) return Unauthorized();
-            transaction.UserId = userId;
-            if (!double.IsFinite(transaction.Amount) || transaction.Amount <= 0) return BadRequest("Amount must be greater than zero.");
+            transaction.Id = 0; transaction.User = null; transaction.UserId = userId; // never trust ids or a nested user from the client
+            if (!double.IsFinite(transaction.Amount) || transaction.Amount <= 0) return BadRequest("Amount must be greater than zero."); if (transaction.Date == default) transaction.Date = DateTime.UtcNow;
             if (string.IsNullOrWhiteSpace(transaction.Category) || transaction.Category == "Auto")
                 transaction.Category = TransactionCategorizer.Suggest(transaction.Title);
             if (transaction.Latitude is < -90 or > 90 || transaction.Longitude is < -180 or > 180)
@@ -49,7 +49,7 @@ namespace BudgetBounder.Api.Controllers
             ProgressionService.UpdateStreak(user, DateOnly.FromDateTime(DateTime.UtcNow));
             AutoCompleteMission(userId, transaction.Type);
             _context.SaveChanges();
-            return transaction;
+            transaction.User = null; return transaction; // keep the user's password hash out of the response
         }
 
         [HttpGet("user/{userId}")]

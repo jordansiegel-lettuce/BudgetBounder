@@ -78,13 +78,22 @@ public class AdminController(
     }
 
     [HttpGet("monitoring")]
-    public ActionResult Monitoring() => Ok(new
+    public async Task<ActionResult> Monitoring([FromServices] IConfiguration configuration, CancellationToken cancellationToken)
     {
-        api = new { status = "Operational", checkedAt = DateTime.UtcNow },
-        database = new { status = "Operational" },
-        ai = new { status = "Configured" },
-        unity = new { status = "Operational" }
-    });
+        var checkedAt = DateTime.UtcNow;
+        var databaseUp = await context.Database.CanConnectAsync(cancellationToken);
+        var aiConfigured = !string.IsNullOrWhiteSpace(configuration["Groq:ApiKey"]);
+        var weekAgo = checkedAt.AddDays(-7);
+        var games = databaseUp ? await context.GameSessions.CountAsync(g => g.SubmittedAt >= weekAgo, cancellationToken) : 0;
+        var flagged = databaseUp ? await context.GameSessions.CountAsync(g => g.SubmittedAt >= weekAgo && g.ValidationState == GameSessionValidationStates.Flagged, cancellationToken) : 0;
+        return Ok(new
+        {
+            api = new { status = "Operational", checkedAt, detail = $"Responded at {checkedAt:HH:mm:ss} UTC" },
+            database = new { status = databaseUp ? "Operational" : "Down", checkedAt, detail = databaseUp ? "SQL Server connection succeeded" : "SQL Server is unreachable" },
+            ai = new { status = aiConfigured ? "Operational" : "Not configured", checkedAt, detail = aiConfigured ? "Groq API key is present" : "Set Groq:ApiKey to enable the coach and AI missions" },
+            game = new { status = databaseUp ? "Operational" : "Down", checkedAt, detail = $"{games} sessions in the last 7 days, {flagged} flagged" }
+        });
+    }
 
     [HttpGet("audit-log")]
     public async Task<ActionResult> AuditLog(CancellationToken cancellationToken) =>

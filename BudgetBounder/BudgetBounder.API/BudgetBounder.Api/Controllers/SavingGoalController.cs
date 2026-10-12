@@ -33,7 +33,7 @@ namespace BudgetBounder.Api.Controllers
         public ActionResult<SavingGoal> CreateSavingGoal(SavingGoal goal)
         {
             if (_currentUser.UserId is not int userId) return Unauthorized();
-            goal.UserId = userId;
+            goal.Id = 0; goal.UserId = userId; goal.CurrentAmount = 0; goal.IsCompleted = false; // progress only changes through contributions
             if (goal.TargetAmount <= 0 || goal.Deadline <= DateTime.UtcNow) return BadRequest("A positive target and future deadline are required.");
             _context.SavingGoals.Add(goal);
             _context.SaveChanges();

@@ -57,7 +57,7 @@ Activation sequence:
 
 ### Function 1: `RootNavigator`
 
-File: `BudgetBounderMobile/app/_layout.tsx`, lines 39-57.
+File: `BudgetBounderMobile/app/_layout.tsx`, lines 48-61.
 
 ```tsx
 <Stack.Protected guard={!token}>
@@ -82,7 +82,7 @@ This proves React Native navigation, multiple screens, authentication and organi
 
 ### Function 2: `save`
 
-File: `BudgetBounderMobile/app/modal.tsx`, lines 52-64.
+File: `BudgetBounderMobile/app/modal.tsx`, lines 52-65.
 
 ```tsx
 await api.post('/transactions', {
@@ -111,7 +111,7 @@ This proves React state, API communication, validation and three device capabili
 
 ### Function 3: `ReceiveTransaction`
 
-File: `BudgetBounder.API/BudgetBounder.Api/Controllers/TransactionsController.cs`, lines 34-51.
+File: `BudgetBounder.API/BudgetBounder.Api/Controllers/TransactionsController.cs`, lines 33-53.
 
 Explain in order:
 
@@ -123,7 +123,7 @@ Explain in order:
 6. Update the matching income/expense mission.
 7. Call `SaveChanges()` to persist everything together.
 
-Point to `AutoCompleteMission`, lines 103-130, for mission progress and reward XP.
+Point to `AutoCompleteMission`, lines 106-129, for mission progress and reward XP.
 
 This is the best function for explaining the complete client -> API -> database -> XP flow.
 
@@ -162,7 +162,7 @@ Exceeded with 12 screens:
 - Five tabs: Home, Activity, Goals, Missions and Profile.
 - Sign In, Register, Add Transaction, Smart Reminders, Create Goal, Goal Contribution and Monthly Budget.
 
-Show `app/_layout.tsx`, lines 43-55, and `app/(tabs)/_layout.tsx`, lines 33-69.
+Show `app/_layout.tsx`, lines 48-61, and `app/(tabs)/_layout.tsx`, lines 33-69.
 
 ### 4. Database through a C# Web API
 
@@ -202,7 +202,7 @@ Not a code item. Make sure the spreadsheet contains the project/student details 
 Met:
 
 - Run the app with Expo Go on the phone.
-- `.env.example` points to `https://budgetbounder.somee.com/api`.
+- `.env` points the app at the API (local demo: this PC's LAN IP on port 5292).
 - `src/services/api.ts`, lines 7-23, configures the URL and JWT.
 - Somee hosts the ASP.NET API and SQL database.
 
@@ -227,7 +227,7 @@ Strong evidence:
 - Code quality: controllers, services, reusable UI, central API client and central theme are separated.
 - Edge cases: client and server validation, ownership checks, permission denial, loading and error states.
 - Innovation: smart data-driven reminders, gamification, native receipt/location data and animation.
-- Tests: 23 API tests and 20 mobile tests currently pass.
+- Tests: 53 API tests, 58 mobile tests and 11 admin tests currently pass.
 
 ## 6. Final presentation order
 
@@ -242,3 +242,5 @@ Strong evidence:
 Final sentence:
 
 > BudgetBounder is a complete mobile product: native React screens, a protected hosted C# API, persistent SQL data, device integrations and business logic all work together.
+
+> For controller/API questions see [API_WALKTHROUGH.md](API_WALKTHROUGH.md).

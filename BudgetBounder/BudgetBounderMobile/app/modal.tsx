@@ -20,37 +20,37 @@ export default function AddTransactionModal() {
   const [merchant, setMerchant] = useState<{ latitude: number; longitude: number; address: string } | null>(null);
 
   async function captureReceipt() {
-    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    try { const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) { setError('Camera permission was not granted. You can still save the transaction manually.'); return; }
     const result = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], base64: true, quality: 0.35 });
     const asset = result.canceled ? null : result.assets[0];
     if (!asset) return;
     const attachment = toReceiptAttachment(asset);
     if (attachment) setReceipt(attachment); else setError('The camera image could not be prepared. Try again.');
-  }
+    } catch { setError('The camera is not available. Try choosing a photo instead.'); } }
 
   async function chooseReceipt() {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    try { const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) { setError('Photo-library permission was not granted. You can still save without a receipt.'); return; }
     const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], base64: true, quality: 0.35 });
     const asset = result.canceled ? null : result.assets[0];
     if (!asset) return;
     const attachment = toReceiptAttachment(asset);
     if (attachment) setReceipt(attachment); else setError('The selected image could not be prepared. Try another photo.');
-  }
+    } catch { setError('The photo library could not be opened. Try again.'); } }
 
   async function tagLocation() {
-    const permission = await Location.requestForegroundPermissionsAsync();
+    try { const permission = await Location.requestForegroundPermissionsAsync();
     if (!permission.granted) { setError('Location permission was not granted. Location tagging is optional.'); return; }
     const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-    const places = await Location.reverseGeocodeAsync(position.coords);
+    const places = await Location.reverseGeocodeAsync(position.coords).catch(() => []);
     const place = places[0];
     const address = place ? [place.name, place.street, place.city].filter(Boolean).filter((item, index, all) => all.indexOf(item) === index).join(', ') : 'Current location';
     setMerchant({ latitude: position.coords.latitude, longitude: position.coords.longitude, address });
-  }
+    } catch { setError('Your location could not be found. Turn on location services and try again.'); } }
 
   async function save() {
-    const value = Number(amount);
+    const value = Number(amount.replace(',', '.'));
     if (!value || value <= 0) { setError('Enter an amount greater than zero.'); return; }
     setSaving(true); setError('');
     try {
@@ -67,7 +67,7 @@ export default function AddTransactionModal() {
   return <Screen>
     <PixelLabel tone={type === 'Expense' ? bb.colors.coral : bb.colors.emerald}>QUICK ENTRY</PixelLabel><Text style={styles.title}>Add transaction</Text>
     <View style={styles.toggle}><Pressable onPress={() => setType('Expense')} style={[styles.toggleItem, type === 'Expense' && styles.active]}><Text style={styles.toggleText}>Expense</Text></Pressable><Pressable onPress={() => setType('Income')} style={[styles.toggleItem, type === 'Income' && styles.active]}><Text style={styles.toggleText}>Income</Text></Pressable></View>
-    <Text style={styles.amountPreview}>{formatIls(Number(amount) || 0)}</Text>
+    <Text style={styles.amountPreview}>{formatIls(Number(amount.replace(',', '.')) || 0)}</Text>
     <TextInput accessibilityLabel="Amount" keyboardType="decimal-pad" value={amount} onChangeText={setAmount} placeholder="0.00" placeholderTextColor={bb.colors.muted} style={styles.input} />
     <TextInput accessibilityLabel="Merchant or description" value={title} onChangeText={setTitle} placeholder="Merchant or description" placeholderTextColor={bb.colors.muted} style={styles.input} />
     <PixelLabel tone={bb.colors.cyan}>CATEGORY</PixelLabel><View style={styles.categories}>{categories.map(item => <Pressable key={item} onPress={() => setCategory(item)} style={[styles.chip, category === item && styles.chipActive]}><Text style={[styles.chipText, category === item && styles.chipTextActive]}>{item}</Text></Pressable>)}</View>

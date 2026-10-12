@@ -24,7 +24,7 @@ Write-Host "[4/4] Expo (LAN, for Expo Go) pinned to $ip ..." -ForegroundColor Cy
 Start-Process powershell -ArgumentList "-NoExit","-Command","cd '$root\BudgetBounderMobile'; `$env:EXPO_PACKAGER_HOSTNAME='$ip'; `$env:REACT_NATIVE_PACKAGER_HOSTNAME='$ip'; npx expo start --go --lan"
 Write-Host ""
 Write-Host "Admin site : http://localhost:5173  (or 5174 if 5173 is taken)" -ForegroundColor Green
-Write-Host "Admin login: admin@budgetbounder.app / Admin2026!Demo" -ForegroundColor Green
+Write-Host "Admin login: jordisiegel@gmail.com / Demo2026!  (or admin@budgetbounder.local, password in BootstrapAdmin settings)" -ForegroundColor Green
 Write-Host "API        : http://localhost:5292/swagger" -ForegroundColor Green
 Write-Host "Expo Go    : scan the QR, or enter exp://${ip}:8081 manually (phone on same WiFi)" -ForegroundColor Green
-Write-Host "App login  : jordisiegel@gmail.com / Demo2026!   (Lv 4, 760 XP)" -ForegroundColor Green
+Write-Host "App login  : jordisiegel@gmail.com / Demo2026!   (Lv 3, 290 XP)" -ForegroundColor Green

@@ -18,6 +18,16 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// An expired token or a frozen/demoted account: clear the session and return to sign-in.
+api.interceptors.response.use(undefined, (error) => {
+  if (axios.isAxiosError(error) && error.response?.status === 401 && localStorage.getItem("token")) {
+    localStorage.removeItem("token");
+    localStorage.removeItem("budgetbounder_user");
+    window.location.assign("/login?reason=expired");
+  }
+  return Promise.reject(error);
+});
+
 export default api;
 
 export const adminApi = {

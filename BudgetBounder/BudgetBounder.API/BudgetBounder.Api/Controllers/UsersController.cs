@@ -56,7 +56,8 @@ namespace BudgetBounder.Api.Controllers
         [AllowAnonymous]
         public ActionResult Login(LoginDto loginDto)
         {
-            var user = _context.Users.FirstOrDefault(u => u.Email == loginDto.Email);
+            var normalizedEmail = loginDto.Email.Trim().ToLowerInvariant();
+            var user = _context.Users.FirstOrDefault(u => (u.Email ?? "").ToLower() == normalizedEmail);
             if (user == null || !BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHash))
                 return Unauthorized();
             if (!user.IsActive)

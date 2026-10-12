@@ -14,7 +14,7 @@ namespace BudgetBounder.Api.Models
         [Required]
         [MinLength(3)]
         public string? PasswordHash { get; set; }
-        public int Level { get; set; }
+        public int Level { get; set; } = 1;
         public double XP { get; set; }
         [Required]
         [MaxLength(20)]

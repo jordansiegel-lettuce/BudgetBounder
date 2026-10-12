@@ -45,6 +45,7 @@ export default function Login() {
         <div className="form-group"><label>Administrator email</label><input type="email" autoComplete="username" value={email} onChange={e => setEmail(e.target.value)} placeholder="admin@budgetbounder.app" required /></div>
         <div className="form-group"><label>Password</label><input type="password" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••••••" required /></div>
         {(error || params.get("reason") === "admin") && <p className="form-error">{error ?? "Administrator permissions are required."}</p>}
+        {!error && params.get("reason") === "expired" && <p className="form-error">Your session ended. Sign in again.</p>}
         <button type="submit" disabled={submitting}>{submitting ? "VERIFYING…" : "ENTER OPERATIONS"}</button>
       </form>
       <p className="auth-footer">Protected by role-based API authorization and audit logging.</p>
